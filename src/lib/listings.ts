@@ -1,7 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
 import apt1 from "@/assets/apt-1.jpg";
-import apt2 from "@/assets/apt-2.jpg";
-import apt3 from "@/assets/apt-3.jpg";
-import apt4 from "@/assets/apt-4.jpg";
 
 export type ListingType = "شقة كاملة" | "أوضة مفروشة" | "سرير";
 export type ListingStatus = "متاحة" | "محجوزة" | "مؤجرة";
@@ -33,97 +31,100 @@ export interface Listing {
   ratingsCount: number;
   detailRating: Rating;
   description: string;
+  landlordId?: string;
 }
-
-const gallery = [apt1, apt2, apt3, apt4];
-
-export const listings: Listing[] = [
-  {
-    id: "1",
-    title: "شقة مفروشة بالكامل",
-    area: "شارع ميريت الرئيسي - الكوامل",
-    price: 4500,
-    type: "شقة كاملة",
-    status: "متاحة",
-    distance: "5 دقائق من الجامعة",
-    image: apt4,
-    gallery,
-    rooms: 3,
-    baths: 2,
-    verified: true,
-    previouslyRented: true,
-    updatedDaysAgo: 2,
-    badge: "الأكثر طلباً",
-    rating: 4.8,
-    ratingsCount: 24,
-    detailRating: { cleanliness: 4.9, internet: 4.6, furniture: 4.8, quietness: 4.7 },
-    description: "شقة مفروشة بالكامل قريبة من الجامعة وجميع الخدمات. مناسبة جداً للطلاب، تحتوي على واي فاي، تكييف، مطبخ مجهز ومياه ساخنة.",
-  },
-  {
-    id: "2",
-    title: "أوضة مفروشة فاخرة",
-    area: "الحي الثاني - الكوامل",
-    price: 2200,
-    type: "أوضة مفروشة",
-    status: "متاحة",
-    distance: "7 دقائق من الجامعة",
-    image: apt2,
-    gallery,
-    rooms: 1,
-    baths: 1,
-    verified: true,
-    previouslyRented: false,
-    updatedDaysAgo: 5,
-    badge: "أفضل قيمة",
-    rating: 4.6,
-    ratingsCount: 12,
-    detailRating: { cleanliness: 4.7, internet: 4.5, furniture: 4.6, quietness: 4.8 },
-    description: "أوضة مفروشة بإطلالة جميلة، تشمل سرير مزدوج ومكتب دراسة وخزانة كبيرة.",
-  },
-  {
-    id: "3",
-    title: "سرير في غرفة مشتركة",
-    area: "الحي الأول - الكوامل",
-    price: 1200,
-    type: "سرير",
-    status: "محجوزة",
-    distance: "10 دقائق من الجامعة",
-    image: apt3,
-    gallery,
-    rooms: 1,
-    baths: 1,
-    verified: true,
-    previouslyRented: true,
-    updatedDaysAgo: 1,
-    rating: 4.4,
-    ratingsCount: 8,
-    detailRating: { cleanliness: 4.3, internet: 4.5, furniture: 4.2, quietness: 4.6 },
-    description: "سرير في غرفة مشتركة هادئة مع طالب آخر. تكييف وواي فاي مجاني.",
-  },
-  {
-    id: "4",
-    title: "أوضة مفروشة",
-    area: "ميريت - بجوار الجامعة",
-    price: 1600,
-    type: "أوضة مفروشة",
-    status: "مؤجرة",
-    distance: "3 دقائق - ميريت",
-    image: apt1,
-    gallery,
-    rooms: 1,
-    baths: 1,
-    verified: true,
-    previouslyRented: true,
-    updatedDaysAgo: 14,
-    rating: 4.7,
-    ratingsCount: 19,
-    detailRating: { cleanliness: 4.8, internet: 4.6, furniture: 4.7, quietness: 4.9 },
-    description: "أوضة هادئة بإضاءة طبيعية ممتازة.",
-  },
-];
 
 export function statusTone(s: ListingStatus) {
   if (s === "متاحة") return { dot: "bg-[oklch(0.65_0.17_150)]", text: "text-[oklch(0.45_0.15_150)]", bg: "bg-[oklch(0.95_0.05_150)]" };
   if (s === "محجوزة") return { dot: "bg-gold", text: "text-gold", bg: "bg-gold/15" };
   return { dot: "bg-muted-foreground", text: "text-muted-foreground", bg: "bg-secondary" };
+}
+
+const FALLBACK = apt1;
+
+export function resolveImage(pathOrUrl: string | null | undefined): string {
+  if (!pathOrUrl) return FALLBACK;
+  if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("/") || pathOrUrl.startsWith("data:")) return pathOrUrl;
+  const { data } = supabase.storage.from("properties").getPublicUrl(pathOrUrl);
+  return data.publicUrl || FALLBACK;
+}
+
+export interface PropertyRow {
+  id: string;
+  landlord_id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  status: string;
+  area: string | null;
+  distance: string | null;
+  price: number;
+  rooms: number;
+  baths: number;
+  verified: boolean;
+  previously_rented: boolean;
+  badge: string | null;
+  cover_image: string | null;
+  updated_at: string;
+}
+
+export interface PropertyImageRow {
+  id: string;
+  property_id: string;
+  url: string;
+  sort_order: number;
+}
+
+export interface PropertyRatingRow {
+  property_id: string;
+  cleanliness: number | null;
+  internet: number | null;
+  furniture: number | null;
+  quietness: number | null;
+}
+
+export function mapPropertyToListing(
+  p: PropertyRow,
+  images: PropertyImageRow[] = [],
+  ratings: PropertyRatingRow[] = [],
+): Listing {
+  const gallery = images.length ? images.map((i) => resolveImage(i.url)) : [resolveImage(p.cover_image)];
+  const avg = (key: keyof Rating) => {
+    const vals = ratings.map((r) => Number(r[key as keyof PropertyRatingRow])).filter((n) => !isNaN(n) && n > 0);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+  };
+  const detailRating: Rating = {
+    cleanliness: avg("cleanliness"),
+    internet: avg("internet"),
+    furniture: avg("furniture"),
+    quietness: avg("quietness"),
+  };
+  const overall =
+    (detailRating.cleanliness + detailRating.internet + detailRating.furniture + detailRating.quietness) / 4 || 0;
+  const updatedDaysAgo = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(p.updated_at).getTime()) / (1000 * 60 * 60 * 24)),
+  );
+  return {
+    id: p.id,
+    title: p.title,
+    area: p.area ?? "",
+    price: Number(p.price),
+    type: (p.type as ListingType) || "شقة كاملة",
+    status: (p.status as ListingStatus) || "متاحة",
+    distance: p.distance ?? "",
+    image: gallery[0],
+    gallery,
+    rooms: p.rooms,
+    baths: p.baths,
+    verified: p.verified,
+    previouslyRented: p.previously_rented,
+    updatedDaysAgo,
+    badge: (p.badge as Listing["badge"]) || undefined,
+    rating: overall,
+    ratingsCount: ratings.length,
+    detailRating,
+    description: p.description ?? "",
+    landlordId: p.landlord_id,
+  };
 }
