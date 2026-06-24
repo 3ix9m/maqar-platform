@@ -63,7 +63,7 @@ function ListingDetail() {
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {l.gallery.map((g, i) => (
+          {l.gallery.map((g: string, i: number) => (
             <img key={i} src={g} alt="" className="h-14 w-20 shrink-0 rounded-lg object-cover" loading="lazy" />
           ))}
         </div>
