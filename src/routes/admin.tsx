@@ -1,19 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
-import { listings, statusTone } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchAdminStats, fetchListings, deleteProperty, updateProperty, createProperty,
+  listLandlords, createLandlord, deleteLandlord,
+  listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
+} from "@/lib/api";
+import { statusTone, type ListingStatus } from "@/lib/listings";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة | مَقَر" }] }),
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "users";
+type Tab = "overview" | "properties" | "requests" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
+  const { isAdmin, loading } = useAuth();
+
+  if (loading) return <AppShell><TopBar variant="page" title="لوحة الإدارة" backTo="/profile" /><p className="px-5 text-center text-xs text-muted-foreground">جارٍ التحميل...</p></AppShell>;
+  if (!isAdmin) return (
+    <AppShell>
+      <TopBar variant="page" title="لوحة الإدارة" backTo="/profile" />
+      <p className="px-5 text-center text-xs text-muted-foreground">هذه الصفحة للإدارة فقط.</p>
+    </AppShell>
+  );
 
   return (
     <AppShell>
@@ -24,7 +40,7 @@ function AdminDashboard() {
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
             { id: "requests", label: "الطلبات" },
-            { id: "users", label: "المستخدمون" },
+            { id: "landlords", label: "الملاك" },
           ].map((t) => (
             <button
               key={t.id}
@@ -39,37 +55,37 @@ function AdminDashboard() {
         </div>
 
         {tab === "overview" && <Overview />}
-        {tab === "properties" && <Properties />}
-        {tab === "requests" && <Requests />}
-        {tab === "users" && <UsersTab />}
+        {tab === "properties" && <PropertiesTab />}
+        {tab === "requests" && <RequestsTab />}
+        {tab === "landlords" && <LandlordsTab />}
       </div>
     </AppShell>
   );
 }
 
 function Overview() {
+  const { data: s } = useQuery({ queryKey: ["admin-stats"], queryFn: fetchAdminStats });
   const stats = [
-    { label: "الطلاب", value: 348, icon: Users, tone: "text-gold" },
-    { label: "الملاك", value: 42, icon: Building2, tone: "text-gold" },
-    { label: "العقارات", value: 126, icon: Building2, tone: "text-gold" },
-    { label: "طلبات نشطة", value: 19, icon: Inbox, tone: "text-gold" },
-    { label: "إيجارات منجزة", value: 87, icon: CheckCircle2, tone: "text-gold" },
-    { label: "متوسط التقييم", value: "4.7", icon: Star, tone: "text-gold" },
+    { label: "الطلاب", value: s?.students ?? 0, icon: Users },
+    { label: "الملاك", value: s?.landlords ?? 0, icon: Building2 },
+    { label: "العقارات", value: s?.properties ?? 0, icon: Building2 },
+    { label: "طلبات معاينة", value: s?.viewingRequests ?? 0, icon: Inbox },
+    { label: "طلبات سكن", value: s?.housingRequests ?? 0, icon: CheckCircle2 },
+    { label: "متوسط التقييم", value: "—", icon: Star },
   ];
   return (
     <>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {stats.map(({ label, value, icon: Icon, tone }) => (
+        {stats.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl bg-card p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">{label}</p>
-              <Icon size={16} className={tone} />
+              <Icon size={16} className="text-gold" />
             </div>
             <p className="mt-2 text-2xl font-extrabold text-primary">{value}</p>
           </div>
         ))}
       </div>
-
       <div className="mt-4 rounded-2xl bg-primary p-5 text-primary-foreground shadow-card">
         <div className="flex items-center gap-2">
           <BarChart3 size={18} className="text-gold" />
@@ -83,12 +99,35 @@ function Overview() {
   );
 }
 
-function Properties() {
+function PropertiesTab() {
+  const qc = useQueryClient();
+  const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
+  const { data: landlords = [] } = useQuery({ queryKey: ["landlords"], queryFn: listLandlords });
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const delMut = useMutation({
+    mutationFn: deleteProperty,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["listings"] }),
+  });
+
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <button className="flex items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground">
+      <button onClick={() => { setEditId(null); setShowForm(true); }} className="flex items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground">
         <Plus size={16} /> إضافة عقار جديد
       </button>
+
+      {showForm && (
+        <PropertyForm
+          landlords={landlords}
+          editId={editId}
+          existing={listings.find((l) => l.id === editId)}
+          onClose={() => setShowForm(false)}
+          onSaved={() => { setShowForm(false); qc.invalidateQueries({ queryKey: ["listings"] }); }}
+        />
+      )}
+
+      {listings.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد عقارات بعد.</p>}
       {listings.map((l) => {
         const t = statusTone(l.status);
         return (
@@ -110,10 +149,10 @@ function Properties() {
               </div>
             </div>
             <div className="mt-3 flex gap-2">
-              <button className="flex flex-1 items-center justify-center gap-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">
+              <button onClick={() => { setEditId(l.id); setShowForm(true); }} className="flex flex-1 items-center justify-center gap-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">
                 <Edit3 size={13} /> تعديل
               </button>
-              <button className="flex flex-1 items-center justify-center gap-1 rounded-full bg-destructive/10 py-2 text-xs font-bold text-destructive">
+              <button onClick={() => { if (confirm("حذف العقار؟")) delMut.mutate(l.id); }} className="flex flex-1 items-center justify-center gap-1 rounded-full bg-destructive/10 py-2 text-xs font-bold text-destructive">
                 <Trash2 size={13} /> حذف
               </button>
             </div>
@@ -124,26 +163,105 @@ function Properties() {
   );
 }
 
-function Requests() {
-  const reqs = [
-    { who: "أحمد محمد", what: "طلب معاينة - شقة ميريت", state: "قيد المراجعة" },
-    { who: "سارة خالد", what: "طلب سكن - أوضة", state: "جديد" },
-    { who: "محمد علي", what: "طلب معاينة - سرير مشترك", state: "تم التأكيد" },
-  ];
+function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
+  const [form, setForm] = useState({
+    landlord_id: existing?.landlordId ?? landlords[0]?.id ?? "",
+    title: existing?.title ?? "",
+    type: existing?.type ?? "شقة كاملة",
+    status: (existing?.status ?? "متاحة") as ListingStatus,
+    area: existing?.area ?? "",
+    distance: existing?.distance ?? "",
+    price: existing?.price ?? 0,
+    rooms: existing?.rooms ?? 1,
+    baths: existing?.baths ?? 1,
+    description: existing?.description ?? "",
+  });
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setErr(null);
+    try {
+      let id = editId;
+      if (editId) {
+        await updateProperty(editId, form);
+      } else {
+        const created = await createProperty(form as any);
+        id = created.id;
+      }
+      if (file && id) await uploadPropertyImage(id, file);
+      onSaved();
+    } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
+  }
+
+  return (
+    <form onSubmit={submit} className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-primary">{editId ? "تعديل عقار" : "عقار جديد"}</p>
+        <button type="button" onClick={onClose}><X size={16} /></button>
+      </div>
+      <div className="mt-3 flex flex-col gap-2">
+        <select required value={form.landlord_id} onChange={(e) => setForm({ ...form, landlord_id: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+          <option value="" disabled>اختر مالك</option>
+          {landlords.map((l: any) => <option key={l.id} value={l.id}>{l.full_name}</option>)}
+        </select>
+        <input required placeholder="عنوان العقار" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+        <div className="grid grid-cols-2 gap-2">
+          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+            <option>شقة كاملة</option><option>أوضة مفروشة</option><option>سرير</option>
+          </select>
+          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ListingStatus })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+            <option>متاحة</option><option>محجوزة</option><option>مؤجرة</option>
+          </select>
+        </div>
+        <input placeholder="المنطقة" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+        <input placeholder="المسافة من الجامعة" value={form.distance} onChange={(e) => setForm({ ...form, distance: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+        <div className="grid grid-cols-3 gap-2">
+          <input type="number" placeholder="السعر" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+          <input type="number" placeholder="غرف" value={form.rooms} onChange={(e) => setForm({ ...form, rooms: Number(e.target.value) })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+          <input type="number" placeholder="حمامات" value={form.baths} onChange={(e) => setForm({ ...form, baths: Number(e.target.value) })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+        </div>
+        <textarea rows={2} placeholder="وصف" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+        <label className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+          <Upload size={14} className="text-gold" />
+          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+        </label>
+        {err && <p className="text-xs text-destructive">{err}</p>}
+        <button disabled={loading} className="mt-1 flex items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60">
+          {loading && <Loader2 size={12} className="animate-spin" />}
+          حفظ
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function RequestsTab() {
+  const qc = useQueryClient();
+  const { data = [], isLoading } = useQuery({ queryKey: ["all-viewings"], queryFn: listAllViewingRequests });
+  const updMut = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateViewingStatus(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-viewings"] }),
+  });
+  if (isLoading) return <p className="mt-6 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>;
   return (
     <div className="mt-4 flex flex-col gap-3">
-      {reqs.map((r, i) => (
-        <div key={i} className="rounded-2xl bg-card p-4 shadow-soft">
+      {data.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد طلبات.</p>}
+      {data.map((r: any) => (
+        <div key={r.id} className="rounded-2xl bg-card p-4 shadow-soft">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-bold text-primary">{r.who}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{r.what}</p>
+              <p className="text-sm font-bold text-primary">{r.students?.full_name ?? "طالب"}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{r.properties?.title}</p>
             </div>
-            <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{r.state}</span>
+            <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{r.status}</span>
           </div>
           <div className="mt-3 flex gap-2">
-            <button className="flex-1 rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground">قبول</button>
-            <button className="flex-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">تواصل</button>
+            <button onClick={() => updMut.mutate({ id: r.id, status: "تم تأكيد الموعد" })} className="flex-1 rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground">تأكيد</button>
+            <button onClick={() => updMut.mutate({ id: r.id, status: "مكتمل" })} className="flex-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">إنهاء</button>
           </div>
         </div>
       ))}
@@ -151,28 +269,49 @@ function Requests() {
   );
 }
 
-function UsersTab() {
+function LandlordsTab() {
+  const qc = useQueryClient();
+  const { data = [] } = useQuery({ queryKey: ["landlords"], queryFn: listLandlords });
+  const [show, setShow] = useState(false);
+  const [form, setForm] = useState({ full_name: "", phone: "", email: "", notes: "" });
+  const [err, setErr] = useState<string | null>(null);
+  const createMut = useMutation({
+    mutationFn: () => createLandlord(form),
+    onSuccess: () => { setShow(false); setForm({ full_name: "", phone: "", email: "", notes: "" }); qc.invalidateQueries({ queryKey: ["landlords"] }); },
+    onError: (e: any) => setErr(e.message),
+  });
+  const delMut = useMutation({
+    mutationFn: deleteLandlord,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["landlords"] }),
+  });
+
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <button className="flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">
-        <UserPlus size={16} /> إنشاء حساب مالك
+      <button onClick={() => setShow((s) => !s)} className="flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">
+        <UserPlus size={16} /> {show ? "إغلاق" : "إنشاء حساب مالك"}
       </button>
-      {[
-        { name: "محمد علي", role: "مالك", count: "3 عقارات" },
-        { name: "أحمد محمد", role: "طالب", count: "5 طلبات" },
-        { name: "سارة خالد", role: "طالب", count: "2 طلبات" },
-      ].map((u, i) => (
-        <div key={i} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
+      {show && (
+        <form onSubmit={(e) => { e.preventDefault(); createMut.mutate(); }} className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-soft">
+          <input required placeholder="الاسم الكامل" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input required placeholder="رقم الهاتف" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input placeholder="البريد (اختياري)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <textarea rows={2} placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          {err && <p className="text-xs text-destructive">{err}</p>}
+          <button className="rounded-full bg-gold py-2 text-xs font-bold text-gold-foreground">حفظ المالك</button>
+        </form>
+      )}
+      {data.map((u: any) => (
+        <div key={u.id} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
               <Users size={16} />
             </span>
             <div>
-              <p className="text-sm font-bold text-primary">{u.name}</p>
-              <p className="text-[11px] text-muted-foreground">{u.role} · {u.count}</p>
+              <p className="text-sm font-bold text-primary">{u.full_name}</p>
+              <p className="text-[11px] text-muted-foreground">{u.phone}</p>
             </div>
           </div>
-          <button className="rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-primary">إدارة</button>
+          <button onClick={() => { if (confirm("حذف؟")) delMut.mutate(u.id); }} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">حذف</button>
         </div>
       ))}
     </div>

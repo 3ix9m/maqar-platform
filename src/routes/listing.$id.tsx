@@ -1,26 +1,19 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
-  ShieldCheck, Star, Clock, Building2,
+  ShieldCheck, Star, Clock, Building2, Heart,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { StatusPill, VerifiedBadge } from "@/components/ListingCard";
-import { listings } from "@/lib/listings";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchListing, listFavorites, toggleFavorite } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/listing/$id")({
-  head: ({ params }) => {
-    const l = listings.find((x) => x.id === params.id);
-    return {
-      meta: [
-        { title: l ? `${l.title} | مَقَر` : "تفاصيل العقار | مَقَر" },
-        { name: "description", content: l?.description ?? "تفاصيل سكن طلابي موثوق." },
-        ...(l ? [{ property: "og:image", content: l.image }] : []),
-      ],
-    };
-  },
-  loader: ({ params }) => {
-    const l = listings.find((x) => x.id === params.id);
+  head: () => ({ meta: [{ title: "تفاصيل العقار | مَقَر" }] }),
+  loader: async ({ params }) => {
+    const l = await fetchListing(params.id);
     if (!l) throw notFound();
     return l;
   },
@@ -41,7 +34,22 @@ const amenities = [
 ];
 
 function ListingDetail() {
-  const l = Route.useLoaderData();
+  const initial = Route.useLoaderData();
+  const { data: l = initial } = useQuery({ queryKey: ["listing", initial.id], queryFn: () => fetchListing(initial.id), initialData: initial });
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { data: favIds = [] } = useQuery({
+    queryKey: ["favorites", user?.id],
+    queryFn: () => listFavorites(user!.id),
+    enabled: !!user,
+  });
+  const isFav = favIds.includes(l!.id);
+  const favMut = useMutation({
+    mutationFn: () => toggleFavorite(user!.id, l!.id, !isFav),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["favorites", user?.id] }),
+  });
+
+  if (!l) return null;
   const ratings = [
     { label: "النظافة", v: l.detailRating.cleanliness },
     { label: "الإنترنت", v: l.detailRating.internet },
@@ -51,11 +59,20 @@ function ListingDetail() {
 
   return (
     <AppShell>
-      <TopBar variant="page" title="تفاصيل العقار" showFavorite />
+      <TopBar variant="page" title="تفاصيل العقار" />
 
       <div className="px-5 pb-4">
         <div className="relative overflow-hidden rounded-2xl shadow-card">
           <img src={l.image} alt={l.title} className="aspect-[4/3] w-full object-cover" />
+          {user && (
+            <button
+              onClick={() => favMut.mutate()}
+              aria-label="مفضلة"
+              className={`absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full ${isFav ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+            >
+              <Heart size={16} className={isFav ? "fill-current" : ""} />
+            </button>
+          )}
           <span className="absolute bottom-3 right-3 rounded-full bg-primary/85 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">1/{l.gallery.length}</span>
           {l.badge && (
             <span className="absolute right-3 top-3 rounded-md bg-gold px-2 py-1 text-[10px] font-extrabold text-gold-foreground">{l.badge}</span>
@@ -142,10 +159,12 @@ function ListingDetail() {
           </div>
         </div>
 
-        <div className="mt-6">
-          <h2 className="text-sm font-bold text-primary">عن العقار</h2>
-          <p className="mt-2 text-sm leading-7 text-muted-foreground">{l.description}</p>
-        </div>
+        {l.description && (
+          <div className="mt-6">
+            <h2 className="text-sm font-bold text-primary">عن العقار</h2>
+            <p className="mt-2 text-sm leading-7 text-muted-foreground">{l.description}</p>
+          </div>
+        )}
 
         <div className="mt-6 rounded-2xl border border-gold/30 bg-gold/5 p-4">
           <div className="flex items-start gap-2">

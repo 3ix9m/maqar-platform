@@ -6,7 +6,8 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
-import { listings } from "@/lib/listings";
+import { useQuery } from "@tanstack/react-query";
+import { fetchListings } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -45,6 +46,7 @@ const articles = [
 ];
 
 function Home() {
+  const { data: listings = [], isLoading } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const featured = listings.filter((l) => l.badge).slice(0, 2);
   const recommended = listings.slice(0, 3);
 
@@ -71,12 +73,14 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-6 px-5">
-        <SectionHeader title="شقق مميزة" to="/search" />
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {featured.map((l) => <ListingCard key={l.id} listing={l} />)}
-        </div>
-      </section>
+      {featured.length > 0 && (
+        <section className="mt-6 px-5">
+          <SectionHeader title="شقق مميزة" to="/search" />
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {featured.map((l) => <ListingCard key={l.id} listing={l} />)}
+          </div>
+        </section>
+      )}
 
       <section className="mt-6 px-5">
         <div className="flex items-center gap-2">
@@ -84,6 +88,12 @@ function Home() {
           <h2 className="text-base font-bold text-primary">مقترحة لك</h2>
         </div>
         <div className="mt-3 flex flex-col gap-3">
+          {isLoading && <p className="text-xs text-muted-foreground">جارٍ التحميل...</p>}
+          {!isLoading && recommended.length === 0 && (
+            <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">
+              لا توجد عقارات متاحة بعد. تابعنا قريباً.
+            </p>
+          )}
           {recommended.map((l) => <ListingCard key={l.id} listing={l} variant="row" />)}
         </div>
       </section>
