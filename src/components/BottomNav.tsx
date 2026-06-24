@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Heart, ClipboardList, User } from "lucide-react";
+import { Home, Search, Heart, Inbox, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "الرئيسية", icon: Home },
   { to: "/search", label: "بحث", icon: Search },
   { to: "/favorites", label: "المفضلة", icon: Heart },
-  { to: "/my-listings", label: "إعلاناتي", icon: ClipboardList },
-  { to: "/account", label: "حسابي", icon: User },
+  { to: "/my-requests", label: "طلباتي", icon: Inbox },
+  { to: "/profile", label: "حسابي", icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -21,23 +21,12 @@ export function BottomNav() {
           const active = pathname === to;
           return (
             <li key={to} className="flex-1">
-              <Link
-                to={to}
-                className="flex flex-col items-center gap-1 py-1 text-[11px] font-medium"
-              >
+              <Link to={to} className="flex flex-col items-center gap-1 py-1 text-[11px] font-medium">
                 <span className="relative flex h-6 w-6 items-center justify-center">
-                  <Icon
-                    className={active ? "text-primary" : "text-muted-foreground"}
-                    size={22}
-                    strokeWidth={active ? 2.4 : 1.8}
-                  />
-                  {active && (
-                    <span className="absolute -top-2 h-1 w-1 rounded-full bg-gold" />
-                  )}
+                  <Icon className={active ? "text-primary" : "text-muted-foreground"} size={22} strokeWidth={active ? 2.4 : 1.8} />
+                  {active && <span className="absolute -top-2 h-1 w-1 rounded-full bg-gold" />}
                 </span>
-                <span className={active ? "text-primary" : "text-muted-foreground"}>
-                  {label}
-                </span>
+                <span className={active ? "text-primary" : "text-muted-foreground"}>{label}</span>
               </Link>
             </li>
           );

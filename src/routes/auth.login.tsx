@@ -1,0 +1,46 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { TopBar } from "@/components/TopBar";
+import logo from "@/assets/maqar-logo.png";
+import { Mail, Lock } from "lucide-react";
+
+export const Route = createFileRoute("/auth/login")({
+  head: () => ({ meta: [{ title: "تسجيل الدخول | مَقَر" }] }),
+  component: Login,
+});
+
+function Login() {
+  return (
+    <AppShell>
+      <TopBar variant="page" title="تسجيل الدخول" backTo="/profile" />
+      <div className="px-5">
+        <div className="flex flex-col items-center">
+          <img src={logo} alt="مَقَر" className="h-16 w-auto" />
+          <p className="mt-2 text-xs text-muted-foreground">أهلاً بك مجدداً في مَقَر</p>
+        </div>
+
+        <form className="mt-6 flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+          <Field label="البريد الإلكتروني" icon={Mail} placeholder="example@email.com" type="email" />
+          <Field label="كلمة المرور" icon={Lock} placeholder="********" type="password" />
+          <button className="rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card">تسجيل الدخول</button>
+          <p className="text-center text-xs text-muted-foreground">
+            ليس لديك حساب؟{" "}
+            <Link to="/auth/register" className="font-bold text-gold">إنشاء حساب طالب</Link>
+          </p>
+        </form>
+      </div>
+    </AppShell>
+  );
+}
+
+function Field({ label, icon: Icon, placeholder, type = "text" }: { label: string; icon: any; placeholder: string; type?: string }) {
+  return (
+    <div>
+      <label className="text-xs font-bold text-primary">{label}</label>
+      <div className="mt-2 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
+        <Icon size={16} className="text-gold" />
+        <input type={type} dir="rtl" placeholder={placeholder} className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+      </div>
+    </div>
+  );
+}
