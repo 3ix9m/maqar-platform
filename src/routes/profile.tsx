@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { TopBar } from "@/components/TopBar";
 import { User, Heart, Inbox, BookOpen, HelpCircle, Settings, LogOut, ChevronLeft, Building2, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -19,15 +21,20 @@ const items = [
   { to: "/housing-request", label: "نشر طلب سكن", icon: Building2 },
   { to: "/guide", label: "دليل السكن الطلابي", icon: BookOpen },
   { to: "/faq", label: "الأسئلة الشائعة", icon: HelpCircle },
-  { to: "/profile", label: "الإعدادات", icon: Settings },
-] as const;
-
-const tools = [
-  { to: "/landlord", label: "لوحة المالك", icon: Building2 },
-  { to: "/admin", label: "لوحة الإدارة", icon: ShieldCheck },
 ] as const;
 
 function Profile() {
+  const { user, roles, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { data: profile } = useQuery({
+    queryKey: ["student-profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("students").select("*").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
   return (
     <AppShell>
       <div className="rounded-b-3xl bg-primary px-5 pb-7 pt-6 text-primary-foreground">
@@ -36,9 +43,20 @@ function Profile() {
           <div className="grid h-20 w-20 place-items-center rounded-full bg-primary-foreground/10 ring-2 ring-gold/40">
             <User size={36} className="text-primary-foreground/80" />
           </div>
-          <p className="text-base font-bold">أحمد محمد</p>
-          <p className="text-xs text-primary-foreground/70">طالب · جامعة ميريت</p>
-          <Link to="/auth/login" className="mt-2 rounded-full border border-gold/40 px-4 py-1.5 text-[11px] font-bold text-gold">تسجيل الدخول</Link>
+          {user ? (
+            <>
+              <p className="text-base font-bold">{profile?.full_name ?? user.email}</p>
+              <p className="text-xs text-primary-foreground/70">
+                {roles.includes("admin") ? "إدارة مَقَر" : roles.includes("landlord") ? "مالك" : "طالب"}
+                {profile?.university ? ` · ${profile.university}` : ""}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-base font-bold">زائر</p>
+              <Link to="/auth/login" className="mt-2 rounded-full border border-gold/40 px-4 py-1.5 text-[11px] font-bold text-gold">تسجيل الدخول</Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -58,30 +76,50 @@ function Profile() {
         ))}
       </ul>
 
-      <div className="mt-5 px-5">
-        <p className="mb-2 text-[11px] font-bold text-muted-foreground">للموظفين</p>
-        <ul className="flex flex-col gap-2">
-          {tools.map(({ to, label, icon: Icon }) => (
-            <li key={label}>
-              <Link to={to} className="flex items-center justify-between rounded-2xl bg-card px-4 py-3.5 shadow-soft">
-                <span className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
-                    <Icon size={16} />
+      {(roles.includes("landlord") || isAdmin) && (
+        <div className="mt-5 px-5">
+          <p className="mb-2 text-[11px] font-bold text-muted-foreground">للموظفين</p>
+          <ul className="flex flex-col gap-2">
+            {roles.includes("landlord") && (
+              <li>
+                <Link to="/landlord" className="flex items-center justify-between rounded-2xl bg-card px-4 py-3.5 shadow-soft">
+                  <span className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
+                      <Building2 size={16} />
+                    </span>
+                    <span className="text-sm font-bold text-primary">لوحة المالك</span>
                   </span>
-                  <span className="text-sm font-bold text-primary">{label}</span>
-                </span>
-                <ChevronLeft size={18} className="text-muted-foreground" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+                  <ChevronLeft size={18} className="text-muted-foreground" />
+                </Link>
+              </li>
+            )}
+            {isAdmin && (
+              <li>
+                <Link to="/admin" className="flex items-center justify-between rounded-2xl bg-card px-4 py-3.5 shadow-soft">
+                  <span className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
+                      <ShieldCheck size={16} />
+                    </span>
+                    <span className="text-sm font-bold text-primary">لوحة الإدارة</span>
+                  </span>
+                  <ChevronLeft size={18} className="text-muted-foreground" />
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
 
-      <div className="mt-5 px-5">
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-card py-3 text-sm font-bold text-destructive">
-          <LogOut size={16} /> تسجيل الخروج
-        </button>
-      </div>
+      {user && (
+        <div className="mt-5 px-5">
+          <button
+            onClick={async () => { await signOut(); navigate({ to: "/" }); }}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-card py-3 text-sm font-bold text-destructive"
+          >
+            <LogOut size={16} /> تسجيل الخروج
+          </button>
+        </div>
+      )}
     </AppShell>
   );
 }
