@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
-import { listings } from "@/lib/listings";
 import { HeartOff } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchListings, listFavorites } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({
@@ -16,7 +18,29 @@ export const Route = createFileRoute("/favorites")({
 });
 
 function Favorites() {
-  const favs = listings.slice(0, 2);
+  const { user, loading } = useAuth();
+  const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
+  const { data: favIds = [] } = useQuery({
+    queryKey: ["favorites", user?.id],
+    queryFn: () => listFavorites(user!.id),
+    enabled: !!user,
+  });
+  const favs = listings.filter((l) => favIds.includes(l.id));
+
+  if (!loading && !user) {
+    return (
+      <AppShell>
+        <TopBar variant="page" title="المفضلة" />
+        <div className="mt-12 flex flex-col items-center gap-3 px-5 text-center">
+          <p className="text-sm font-bold text-primary">سجّل دخولك لعرض المفضلة</p>
+          <Link to="/auth/login" className="mt-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground">
+            تسجيل الدخول
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <TopBar variant="page" title="المفضلة" />
