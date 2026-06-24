@@ -1,29 +1,124 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Search, Building2, BedDouble, DoorOpen, Shield, MapPin, MessageSquare, Percent } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { TopBar } from "@/components/TopBar";
+import { ListingCard } from "@/components/ListingCard";
+import { listings } from "@/lib/listings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "مَقَر | سكنك قرب جامعتك" },
+      { name: "description", content: "ابحث عن شقق وأوض وسرير قريبة من جامعة ميريت والكوامل." },
     ],
   }),
-  component: Index,
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const typeChips = [
+  { label: "شقة كاملة", icon: Building2 },
+  { label: "أوضة", icon: DoorOpen },
+  { label: "سرير", icon: BedDouble },
+];
+
+const features = [
+  { label: "شقق موثقة", icon: Shield },
+  { label: "قريبة من الجامعة", icon: MapPin },
+  { label: "تواصل مباشر", icon: MessageSquare },
+  { label: "بدون عمولات", icon: Percent },
+];
+
+function Home() {
+  const featured = listings.slice(0, 3);
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell>
+      <TopBar variant="home" />
+
+      <section className="px-5 pt-2">
+        <h1 className="text-2xl font-extrabold text-primary">سكنك قرب جامعتك</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          ابحث عن شقق وأوض وسرير في الكوامل
+        </p>
+
+        <Link
+          to="/search"
+          className="mt-5 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 shadow-soft"
+        >
+          <Search size={18} className="text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">ابحث عن منطقة أو نوع سكن...</span>
+        </Link>
+
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {typeChips.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-primary shadow-soft"
+            >
+              <Icon size={14} className="text-gold" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-6 px-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-primary">شقق مميزة</h2>
+          <Link to="/search" className="text-xs font-bold text-gold">عرض الكل</Link>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {featured.slice(0, 2).map((l) => (
+            <ListingCard key={l.id} listing={l} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-6 px-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-primary">أحدث الشقق</h2>
+          <Link to="/search" className="text-xs font-bold text-gold">عرض الكل</Link>
+        </div>
+        <div className="mt-3 flex flex-col gap-3">
+          {listings.map((l) => (
+            <ListingCard key={l.id} listing={l} variant="row" />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-7 px-5">
+        <div className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-card">
+          <p className="text-sm font-bold text-gold">عن مَقَر</p>
+          <p className="mt-2 text-sm leading-7 text-primary-foreground/90">
+            مَقَر منصة تجمع الشقق والسرير والأوض القريبة من جامعة ميريت والكوامل في مكان واحد.
+          </p>
+          <div className="mt-5 grid grid-cols-4 gap-2">
+            {features.map(({ label, icon: Icon }) => (
+              <div key={label} className="flex flex-col items-center gap-2 text-center">
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-gold/40 text-gold">
+                  <Icon size={18} />
+                </span>
+                <span className="text-[10px] font-semibold leading-tight text-primary-foreground/90">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-5 px-5">
+        <div className="rounded-2xl bg-card p-5 text-center shadow-soft">
+          <p className="text-sm font-bold text-primary">بتدور على سكن؟</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            احنا هنا نساعدك تلاقي مكان مناسب ليك
+          </p>
+          <a
+            href="https://wa.me/201000000000"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
+          >
+            <MessageSquare size={16} />
+            تواصل واتساب
+          </a>
+        </div>
+      </section>
+    </AppShell>
   );
 }
