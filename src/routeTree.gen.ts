@@ -10,21 +10,48 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
-import { Route as MyListingsRouteImport } from './routes/my-listings'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MyRequestsRouteImport } from './routes/my-requests'
+import { Route as LandlordRouteImport } from './routes/landlord'
+import { Route as HousingRequestRouteImport } from './routes/housing-request'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as FavoritesRouteImport } from './routes/favorites'
-import { Route as AddListingRouteImport } from './routes/add-listing'
-import { Route as AccountRouteImport } from './routes/account'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RequestViewingIdRouteImport } from './routes/request-viewing.$id'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as AuthRegisterRouteImport } from './routes/auth.register'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MyListingsRoute = MyListingsRouteImport.update({
-  id: '/my-listings',
-  path: '/my-listings',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyRequestsRoute = MyRequestsRouteImport.update({
+  id: '/my-requests',
+  path: '/my-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandlordRoute = LandlordRouteImport.update({
+  id: '/landlord',
+  path: '/landlord',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HousingRequestRoute = HousingRequestRouteImport.update({
+  id: '/housing-request',
+  path: '/housing-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FavoritesRoute = FavoritesRouteImport.update({
@@ -32,14 +59,14 @@ const FavoritesRoute = FavoritesRouteImport.update({
   path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AddListingRoute = AddListingRouteImport.update({
-  id: '/add-listing',
-  path: '/add-listing',
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,78 +74,142 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RequestViewingIdRoute = RequestViewingIdRouteImport.update({
+  id: '/request-viewing/$id',
+  path: '/request-viewing/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListingIdRoute = ListingIdRouteImport.update({
   id: '/listing/$id',
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/auth/register',
+  path: '/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/add-listing': typeof AddListingRoute
+  '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/my-listings': typeof MyListingsRoute
+  '/guide': typeof GuideRoute
+  '/housing-request': typeof HousingRequestRoute
+  '/landlord': typeof LandlordRoute
+  '/my-requests': typeof MyRequestsRoute
+  '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
+  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/add-listing': typeof AddListingRoute
+  '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/my-listings': typeof MyListingsRoute
+  '/guide': typeof GuideRoute
+  '/housing-request': typeof HousingRequestRoute
+  '/landlord': typeof LandlordRoute
+  '/my-requests': typeof MyRequestsRoute
+  '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
+  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/add-listing': typeof AddListingRoute
+  '/admin': typeof AdminRoute
+  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/my-listings': typeof MyListingsRoute
+  '/guide': typeof GuideRoute
+  '/housing-request': typeof HousingRequestRoute
+  '/landlord': typeof LandlordRoute
+  '/my-requests': typeof MyRequestsRoute
+  '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
+  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account'
-    | '/add-listing'
+    | '/admin'
+    | '/faq'
     | '/favorites'
-    | '/my-listings'
+    | '/guide'
+    | '/housing-request'
+    | '/landlord'
+    | '/my-requests'
+    | '/profile'
     | '/search'
+    | '/auth/login'
+    | '/auth/register'
     | '/listing/$id'
+    | '/request-viewing/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account'
-    | '/add-listing'
+    | '/admin'
+    | '/faq'
     | '/favorites'
-    | '/my-listings'
+    | '/guide'
+    | '/housing-request'
+    | '/landlord'
+    | '/my-requests'
+    | '/profile'
     | '/search'
+    | '/auth/login'
+    | '/auth/register'
     | '/listing/$id'
+    | '/request-viewing/$id'
   id:
     | '__root__'
     | '/'
-    | '/account'
-    | '/add-listing'
+    | '/admin'
+    | '/faq'
     | '/favorites'
-    | '/my-listings'
+    | '/guide'
+    | '/housing-request'
+    | '/landlord'
+    | '/my-requests'
+    | '/profile'
     | '/search'
+    | '/auth/login'
+    | '/auth/register'
     | '/listing/$id'
+    | '/request-viewing/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
-  AddListingRoute: typeof AddListingRoute
+  AdminRoute: typeof AdminRoute
+  FaqRoute: typeof FaqRoute
   FavoritesRoute: typeof FavoritesRoute
-  MyListingsRoute: typeof MyListingsRoute
+  GuideRoute: typeof GuideRoute
+  HousingRequestRoute: typeof HousingRequestRoute
+  LandlordRoute: typeof LandlordRoute
+  MyRequestsRoute: typeof MyRequestsRoute
+  ProfileRoute: typeof ProfileRoute
   SearchRoute: typeof SearchRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
   ListingIdRoute: typeof ListingIdRoute
+  RequestViewingIdRoute: typeof RequestViewingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,11 +221,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/my-listings': {
-      id: '/my-listings'
-      path: '/my-listings'
-      fullPath: '/my-listings'
-      preLoaderRoute: typeof MyListingsRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-requests': {
+      id: '/my-requests'
+      path: '/my-requests'
+      fullPath: '/my-requests'
+      preLoaderRoute: typeof MyRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landlord': {
+      id: '/landlord'
+      path: '/landlord'
+      fullPath: '/landlord'
+      preLoaderRoute: typeof LandlordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/housing-request': {
+      id: '/housing-request'
+      path: '/housing-request'
+      fullPath: '/housing-request'
+      preLoaderRoute: typeof HousingRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favorites': {
@@ -144,18 +263,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/add-listing': {
-      id: '/add-listing'
-      path: '/add-listing'
-      fullPath: '/add-listing'
-      preLoaderRoute: typeof AddListingRouteImport
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -165,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/request-viewing/$id': {
+      id: '/request-viewing/$id'
+      path: '/request-viewing/$id'
+      fullPath: '/request-viewing/$id'
+      preLoaderRoute: typeof RequestViewingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listing/$id': {
       id: '/listing/$id'
       path: '/listing/$id'
@@ -172,17 +298,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
-  AddListingRoute: AddListingRoute,
+  AdminRoute: AdminRoute,
+  FaqRoute: FaqRoute,
   FavoritesRoute: FavoritesRoute,
-  MyListingsRoute: MyListingsRoute,
+  GuideRoute: GuideRoute,
+  HousingRequestRoute: HousingRequestRoute,
+  LandlordRoute: LandlordRoute,
+  MyRequestsRoute: MyRequestsRoute,
+  ProfileRoute: ProfileRoute,
   SearchRoute: SearchRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
   ListingIdRoute: ListingIdRoute,
+  RequestViewingIdRoute: RequestViewingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
