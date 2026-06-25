@@ -208,7 +208,25 @@ function PropertiesTab() {
                 </div>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {(["متاحة", "محجوزة", "مؤجرة"] as ListingStatus[]).map((s) => {
+                const active = l.status === s;
+                const pending = statusMut.isPending && statusMut.variables?.id === l.id && statusMut.variables?.status === s;
+                return (
+                  <button
+                    key={s}
+                    disabled={active || statusMut.isPending}
+                    onClick={() => statusMut.mutate({ id: l.id, status: s })}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+                      active ? "bg-primary text-primary-foreground" : "bg-secondary text-primary hover:bg-secondary/70"
+                    } disabled:opacity-60`}
+                  >
+                    {pending ? <Loader2 size={11} className="inline animate-spin" /> : s}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex gap-2">
               <button onClick={() => { setEditId(l.id); setShowForm(true); }} className="flex flex-1 items-center justify-center gap-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">
                 <Edit3 size={13} /> تعديل
               </button>
