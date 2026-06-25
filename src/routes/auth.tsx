@@ -3,23 +3,35 @@ import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import logo from "@/assets/maqar-logo.png";
 import { Mail, Lock, User as UserIcon, Phone, ShieldCheck, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
+import { z } from "zod";
 
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({ meta: [{ title: "تسجيل الدخول | مَقَر" }] }),
   component: Auth,
 });
 
 function Auth() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
+  const safeRedirect = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+  const goNext = () => navigate({ to: safeRedirect });
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "" });
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: safeRedirect });
+    });
+  }, [safeRedirect, navigate]);
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,16 +41,16 @@ function Auth() {
       const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
       setLoading(false);
       if (error) return setErr(error.message);
-      navigate({ to: "/" });
+      goNext();
     } else {
       const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { emailRedirectTo: `${window.location.origin}/`, data: { full_name: form.full_name, phone: form.phone } },
+        options: { emailRedirectTo: `${window.location.origin}${safeRedirect}`, data: { full_name: form.full_name, phone: form.phone } },
       });
       setLoading(false);
       if (error) return setErr(error.message);
-      navigate({ to: "/" });
+      goNext();
     }
   }
 
@@ -100,10 +112,12 @@ function Auth() {
             type="button"
             onClick={async () => {
               setErr(null);
-              const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+              const result = await lovable.auth.signInWithOAuth("google", {
+                redirect_uri: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect)}`,
+              });
               if (result.error) { toast.error("تعذر الدخول بـ Google"); return; }
               if (result.redirected) return;
-              navigate({ to: "/" });
+              goNext();
             }}
             className="flex items-center justify-center gap-2 rounded-full border border-border bg-card py-3.5 text-sm font-bold text-primary shadow-soft hover:bg-secondary"
           >
@@ -114,10 +128,12 @@ function Auth() {
             type="button"
             onClick={async () => {
               setErr(null);
-              const result = await lovable.auth.signInWithOAuth("apple", { redirect_uri: window.location.origin });
+              const result = await lovable.auth.signInWithOAuth("apple", {
+                redirect_uri: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect)}`,
+              });
               if (result.error) { toast.error("تعذر الدخول بـ Apple"); return; }
               if (result.redirected) return;
-              navigate({ to: "/" });
+              goNext();
             }}
             className="flex items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90"
           >
