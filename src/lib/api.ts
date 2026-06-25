@@ -121,6 +121,19 @@ export async function listAllViewingRequests() {
   return data ?? [];
 }
 
+export async function listLandlordViewingRequests(landlordId: string) {
+  const { data: props } = await supabase.from("properties").select("id").eq("landlord_id", landlordId);
+  const ids = (props ?? []).map((p: any) => p.id);
+  if (!ids.length) return [];
+  const { data, error } = await supabase
+    .from("viewing_requests")
+    .select("*, properties(title, area)")
+    .in("property_id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function updateViewingStatus(id: string, status: string) {
   const { error } = await supabase.from("viewing_requests").update({ status } as any).eq("id", id);
   if (error) throw error;
