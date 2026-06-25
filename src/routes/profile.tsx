@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { User, Heart, Inbox, BookOpen, HelpCircle, Settings, LogOut, ChevronLeft, Building2, ShieldCheck } from "lucide-react";
+import { User, Heart, Inbox, BookOpen, HelpCircle, LogOut, ChevronLeft, Building2, ShieldCheck, Bell, Scale, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { UniversityPicker } from "@/components/UniversityPicker";
+import { deletePriceAlert, listPriceAlerts } from "@/lib/api";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -17,6 +20,7 @@ export const Route = createFileRoute("/profile")({
 
 const items = [
   { to: "/favorites", label: "المفضلة", icon: Heart },
+  { to: "/compare", label: "مقارنة العقارات", icon: Scale },
   { to: "/my-requests", label: "طلباتي", icon: Inbox },
   { to: "/housing-request", label: "نشر طلب سكن", icon: Building2 },
   { to: "/guide", label: "دليل السكن الطلابي", icon: BookOpen },
