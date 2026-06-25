@@ -4,12 +4,13 @@ import { TopBar } from "@/components/TopBar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAdminStats, fetchListings, deleteProperty, updateProperty, createProperty,
-  listLandlords, createLandlord, deleteLandlord,
+  listLandlords, createLandlord, deleteLandlord, updateLandlordById,
   listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
+  listAllHousingRequests, updateHousingRequestStatus,
 } from "@/lib/api";
 import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload } from "lucide-react";
-import { useState } from "react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "landlords";
+type Tab = "overview" | "properties" | "requests" | "housing" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
