@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /landlord
+Disallow: /account
+Disallow: /notifications
+Disallow: /favorites
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /auth
+
+Sitemap: https://maqar.lovable.app/sitemap.xml
