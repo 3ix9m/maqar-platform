@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2 } from "lucide-react";
+import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
