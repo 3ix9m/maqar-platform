@@ -43,7 +43,7 @@ function Favorites() {
         <TopBar variant="page" title="المفضلة" />
         <div className="mt-12 flex flex-col items-center gap-3 px-5 text-center">
           <p className="text-sm font-bold text-primary">سجّل دخولك لعرض المفضلة</p>
-          <Link to="/auth/login" className="mt-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground">
+          <Link to="/auth" className="mt-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground">
             تسجيل الدخول
           </Link>
         </div>

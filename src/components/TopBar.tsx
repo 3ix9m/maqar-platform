@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, Menu, Bell, Heart, Home, Search, Inbox, User, BookOpen, HelpCircle, Building2, ShieldCheck, LogOut, Scale } from "lucide-react";
+import { ChevronRight, Menu, Bell, Heart, Home, Search, User, BookOpen, Building2, ShieldCheck, LogOut, Scale } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,12 +36,9 @@ const menuItems = [
   { to: "/search", label: "بحث", icon: Search },
   { to: "/favorites", label: "المفضلة", icon: Heart },
   { to: "/compare", label: "مقارنة", icon: Scale },
-  { to: "/my-requests", label: "طلباتي", icon: Inbox },
-  { to: "/housing-request", label: "نشر طلب سكن", icon: Building2 },
   { to: "/notifications", label: "الإشعارات", icon: Bell },
   { to: "/profile", label: "حسابي", icon: User },
-  { to: "/guide", label: "دليل السكن", icon: BookOpen },
-  { to: "/faq", label: "الأسئلة الشائعة", icon: HelpCircle },
+  { to: "/help", label: "مركز المساعدة", icon: BookOpen },
 ] as const;
 
 function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {

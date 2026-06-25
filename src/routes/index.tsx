@@ -118,10 +118,10 @@ function Home() {
       </section>
 
       <section className="mt-6 px-5">
-        <SectionHeader title="دليل السكن الطلابي" to="/guide" icon={BookOpen} />
+        <SectionHeader title="دليل السكن الطلابي" to="/help" icon={BookOpen} />
         <div className="mt-3 flex flex-col gap-2">
           {articles.map((a) => (
-            <Link key={a.slug} to="/guide" className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
+            <Link key={a.slug} to="/help" className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
               <div className="flex items-center gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
                   <BookOpen size={16} />
@@ -135,7 +135,7 @@ function Home() {
       </section>
 
       <section className="mt-6 px-5">
-        <SectionHeader title="الأسئلة الشائعة" to="/faq" icon={HelpCircle} />
+        <SectionHeader title="الأسئلة الشائعة" to="/help" icon={HelpCircle} />
         <div className="mt-3 flex flex-col gap-2">
           {faqs.map((f) => (
             <details key={f.q} className="group rounded-2xl bg-card p-4 shadow-soft">
@@ -152,11 +152,16 @@ function Home() {
       <section className="mt-6 px-5">
         <div className="rounded-2xl bg-gradient-to-br from-primary to-[oklch(0.32_0.07_260)] p-5 text-center text-primary-foreground shadow-card">
           <Star size={28} className="mx-auto fill-gold text-gold" />
-          <p className="mt-2 text-base font-extrabold">لم تجد سكنك المناسب؟</p>
-          <p className="mt-1 text-xs text-primary-foreground/80">انشر طلب سكن وسنرشح لك أنسب الخيارات</p>
-          <Link to="/housing-request" className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground">
-            نشر طلب سكن
-          </Link>
+          <p className="mt-2 text-base font-extrabold">محتاج مساعدة في الاختيار؟</p>
+          <p className="mt-1 text-xs text-primary-foreground/80">تواصل مع فريق مَقَر مباشرة وهنرشّحلك أنسب الخيارات</p>
+          <a
+            href="https://wa.me/201095346393?text=السلام%20عليكم%2C%20محتاج%20مساعدة%20في%20اختيار%20سكن%20مناسب"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground"
+          >
+            تواصل عبر واتساب
+          </a>
         </div>
       </section>
     </AppShell>

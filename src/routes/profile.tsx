@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { User, Heart, Inbox, BookOpen, HelpCircle, LogOut, ChevronLeft, Building2, ShieldCheck, Bell, Scale, Trash2 } from "lucide-react";
+import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,10 +21,8 @@ export const Route = createFileRoute("/profile")({
 const items = [
   { to: "/favorites", label: "المفضلة", icon: Heart },
   { to: "/compare", label: "مقارنة العقارات", icon: Scale },
-  { to: "/my-requests", label: "طلباتي", icon: Inbox },
-  { to: "/housing-request", label: "نشر طلب سكن", icon: Building2 },
-  { to: "/guide", label: "دليل السكن الطلابي", icon: BookOpen },
-  { to: "/faq", label: "الأسئلة الشائعة", icon: HelpCircle },
+  { to: "/notifications", label: "الإشعارات", icon: Bell },
+  { to: "/help", label: "مركز المساعدة", icon: BookOpen },
 ] as const;
 
 function Profile() {
@@ -72,7 +70,7 @@ function Profile() {
           ) : (
             <>
               <p className="text-base font-bold">زائر</p>
-              <Link to="/auth/login" className="mt-2 rounded-full border border-gold/40 px-4 py-1.5 text-[11px] font-bold text-gold">تسجيل الدخول</Link>
+              <Link to="/auth" className="mt-2 rounded-full border border-gold/40 px-4 py-1.5 text-[11px] font-bold text-gold">تسجيل الدخول</Link>
             </>
           )}
         </div>

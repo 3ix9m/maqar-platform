@@ -12,19 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as MyRequestsRouteImport } from './routes/my-requests'
 import { Route as LandlordRouteImport } from './routes/landlord'
-import { Route as HousingRequestRouteImport } from './routes/housing-request'
-import { Route as GuideRouteImport } from './routes/guide'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as FavoritesRouteImport } from './routes/favorites'
-import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RequestViewingIdRouteImport } from './routes/request-viewing.$id'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
-import { Route as AuthRegisterRouteImport } from './routes/auth.register'
-import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -41,24 +36,14 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MyRequestsRoute = MyRequestsRouteImport.update({
-  id: '/my-requests',
-  path: '/my-requests',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LandlordRoute = LandlordRouteImport.update({
   id: '/landlord',
   path: '/landlord',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HousingRequestRoute = HousingRequestRouteImport.update({
-  id: '/housing-request',
-  path: '/housing-request',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GuideRoute = GuideRouteImport.update({
-  id: '/guide',
-  path: '/guide',
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FavoritesRoute = FavoritesRouteImport.update({
@@ -66,14 +51,14 @@ const FavoritesRoute = FavoritesRouteImport.update({
   path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -86,156 +71,106 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestViewingIdRoute = RequestViewingIdRouteImport.update({
-  id: '/request-viewing/$id',
-  path: '/request-viewing/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ListingIdRoute = ListingIdRouteImport.update({
   id: '/listing/$id',
   path: '/listing/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/auth/register',
-  path: '/auth/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
-  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/guide': typeof GuideRoute
-  '/housing-request': typeof HousingRequestRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
-  '/my-requests': typeof MyRequestsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
-  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
-  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/guide': typeof GuideRoute
-  '/housing-request': typeof HousingRequestRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
-  '/my-requests': typeof MyRequestsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
-  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
-  '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
-  '/guide': typeof GuideRoute
-  '/housing-request': typeof HousingRequestRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
-  '/my-requests': typeof MyRequestsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
   '/listing/$id': typeof ListingIdRoute
-  '/request-viewing/$id': typeof RequestViewingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
-    | '/faq'
     | '/favorites'
-    | '/guide'
-    | '/housing-request'
+    | '/help'
     | '/landlord'
-    | '/my-requests'
     | '/notifications'
     | '/profile'
     | '/search'
-    | '/auth/login'
-    | '/auth/register'
     | '/listing/$id'
-    | '/request-viewing/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
-    | '/faq'
     | '/favorites'
-    | '/guide'
-    | '/housing-request'
+    | '/help'
     | '/landlord'
-    | '/my-requests'
     | '/notifications'
     | '/profile'
     | '/search'
-    | '/auth/login'
-    | '/auth/register'
     | '/listing/$id'
-    | '/request-viewing/$id'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
-    | '/faq'
     | '/favorites'
-    | '/guide'
-    | '/housing-request'
+    | '/help'
     | '/landlord'
-    | '/my-requests'
     | '/notifications'
     | '/profile'
     | '/search'
-    | '/auth/login'
-    | '/auth/register'
     | '/listing/$id'
-    | '/request-viewing/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
-  FaqRoute: typeof FaqRoute
   FavoritesRoute: typeof FavoritesRoute
-  GuideRoute: typeof GuideRoute
-  HousingRequestRoute: typeof HousingRequestRoute
+  HelpRoute: typeof HelpRoute
   LandlordRoute: typeof LandlordRoute
-  MyRequestsRoute: typeof MyRequestsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   SearchRoute: typeof SearchRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
   ListingIdRoute: typeof ListingIdRoute
-  RequestViewingIdRoute: typeof RequestViewingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -261,13 +196,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/my-requests': {
-      id: '/my-requests'
-      path: '/my-requests'
-      fullPath: '/my-requests'
-      preLoaderRoute: typeof MyRequestsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/landlord': {
       id: '/landlord'
       path: '/landlord'
@@ -275,18 +203,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandlordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/housing-request': {
-      id: '/housing-request'
-      path: '/housing-request'
-      fullPath: '/housing-request'
-      preLoaderRoute: typeof HousingRequestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/guide': {
-      id: '/guide'
-      path: '/guide'
-      fullPath: '/guide'
-      preLoaderRoute: typeof GuideRouteImport
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favorites': {
@@ -296,18 +217,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/compare': {
       id: '/compare'
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -324,32 +245,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/request-viewing/$id': {
-      id: '/request-viewing/$id'
-      path: '/request-viewing/$id'
-      fullPath: '/request-viewing/$id'
-      preLoaderRoute: typeof RequestViewingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/listing/$id': {
       id: '/listing/$id'
       path: '/listing/$id'
       fullPath: '/listing/$id'
       preLoaderRoute: typeof ListingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -358,20 +258,15 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
-  FaqRoute: FaqRoute,
   FavoritesRoute: FavoritesRoute,
-  GuideRoute: GuideRoute,
-  HousingRequestRoute: HousingRequestRoute,
+  HelpRoute: HelpRoute,
   LandlordRoute: LandlordRoute,
-  MyRequestsRoute: MyRequestsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   SearchRoute: SearchRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
   ListingIdRoute: ListingIdRoute,
-  RequestViewingIdRoute: RequestViewingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

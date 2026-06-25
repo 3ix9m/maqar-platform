@@ -78,7 +78,7 @@ function NotificationsPage() {
         <TopBar variant="page" title="الإشعارات" />
         <div className="grid place-items-center px-5 py-20 text-center text-sm text-muted-foreground">
           <p className="mb-3">سجّل الدخول لرؤية إشعاراتك</p>
-          <Link to="/auth/login" className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-primary-foreground">تسجيل الدخول</Link>
+          <Link to="/auth" className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-primary-foreground">تسجيل الدخول</Link>
         </div>
       </AppShell>
     );
