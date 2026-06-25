@@ -66,7 +66,15 @@ function Favorites() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {favs.map((l) => <ListingCard key={l.id} listing={l} variant="row" />)}
+            {favs.map((l) => (
+              <ListingCard
+                key={l.id}
+                listing={l}
+                variant="row"
+                isFavorite
+                onToggleFavorite={(id, next) => favMut.mutate({ id, next })}
+              />
+            ))}
           </div>
         )}
       </div>
