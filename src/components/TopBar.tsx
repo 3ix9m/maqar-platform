@@ -38,7 +38,7 @@ const menuItems = [
   { to: "/compare", label: "مقارنة", icon: Scale },
   { to: "/notifications", label: "الإشعارات", icon: Bell },
   { to: "/profile", label: "حسابي", icon: User },
-  { to: "/help", label: "مركز المساعدة", icon: BookOpen },
+  { to: "/help", label: "الأسئلة الشائعة", icon: BookOpen },
 ] as const;
 
 function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {

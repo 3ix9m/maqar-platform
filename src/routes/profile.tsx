@@ -22,7 +22,7 @@ const items = [
   { to: "/favorites", label: "المفضلة", icon: Heart },
   { to: "/compare", label: "مقارنة العقارات", icon: Scale },
   { to: "/notifications", label: "الإشعارات", icon: Bell },
-  { to: "/help", label: "مركز المساعدة", icon: BookOpen },
+  { to: "/help", label: "الأسئلة الشائعة", icon: BookOpen },
 ] as const;
 
 function Profile() {
