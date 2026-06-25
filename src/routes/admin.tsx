@@ -118,6 +118,16 @@ function PropertiesTab() {
   const { data: landlords = [] } = useQuery({ queryKey: ["landlords"], queryFn: listLandlords });
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | ListingStatus>("all");
+
+  const filtered = useMemo(() =>
+    listings.filter((l) => {
+      if (statusFilter !== "all" && l.status !== statusFilter) return false;
+      if (!q.trim()) return true;
+      const s = q.toLowerCase();
+      return l.title.toLowerCase().includes(s) || l.area.toLowerCase().includes(s);
+    }), [listings, q, statusFilter]);
 
   const delMut = useMutation({
     mutationFn: deleteProperty,
