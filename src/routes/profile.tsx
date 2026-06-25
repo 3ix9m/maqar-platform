@@ -30,6 +30,7 @@ const items = [
 function Profile() {
   const { user, roles, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { data: profile } = useQuery({
     queryKey: ["student-profile", user?.id],
     enabled: !!user,
@@ -37,6 +38,19 @@ function Profile() {
       const { data } = await supabase.from("students").select("*").eq("id", user!.id).maybeSingle();
       return data;
     },
+  });
+  const { data: alerts = [] } = useQuery({
+    queryKey: ["price-alerts", user?.id],
+    enabled: !!user,
+    queryFn: () => listPriceAlerts(user!.id),
+  });
+  const delMut = useMutation({
+    mutationFn: deletePriceAlert,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["price-alerts", user?.id] });
+      toast.success("تم حذف التنبيه");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر الحذف"),
   });
 
   return (
