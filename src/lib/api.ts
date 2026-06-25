@@ -254,3 +254,53 @@ export async function fetchAdminStats() {
     housingRequests: hr.count ?? 0,
   };
 }
+
+// ───────────── Rentals (verified renters) ─────────────
+// The `rentals` table is admin-managed; only verified rented students can
+// submit a property/landlord rating. RLS in DB enforces this too.
+export async function hasStudentRented(studentId: string, propertyId: string) {
+  const { data, error } = await (supabase as any)
+    .from("rentals")
+    .select("id")
+    .eq("student_id", studentId)
+    .eq("property_id", propertyId)
+    .limit(1)
+    .maybeSingle();
+  if (error) return false;
+  return !!data;
+}
+
+export async function listRentals() {
+  const { data, error } = await (supabase as any)
+    .from("rentals")
+    .select("*, properties(title, area), students(full_name), landlords(full_name)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createRental(input: {
+  student_id: string;
+  property_id: string;
+  landlord_id?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  notes?: string | null;
+}) {
+  const { error } = await (supabase as any).from("rentals").insert(input as any);
+  if (error) throw error;
+}
+
+export async function deleteRental(id: string) {
+  const { error } = await (supabase as any).from("rentals").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function listStudents() {
+  const { data, error } = await supabase
+    .from("students")
+    .select("id, full_name")
+    .order("full_name");
+  if (error) throw error;
+  return data ?? [];
+}

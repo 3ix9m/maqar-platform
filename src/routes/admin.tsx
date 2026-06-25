@@ -7,10 +7,12 @@ import {
   listLandlords, createLandlord, deleteLandlord, updateLandlordById,
   listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
+  listRentals, createRental, deleteRental, listStudents,
 } from "@/lib/api";
 import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone } from "lucide-react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound } from "lucide-react";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -18,7 +20,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "housing" | "landlords";
+type Tab = "overview" | "properties" | "requests" | "housing" | "rentals" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -42,6 +44,7 @@ function AdminDashboard() {
             { id: "properties", label: "العقارات" },
             { id: "requests", label: "طلبات المعاينة" },
             { id: "housing", label: "طلبات السكن" },
+            { id: "rentals", label: "الإيجارات الموثقة" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
             <button
@@ -60,6 +63,7 @@ function AdminDashboard() {
         {tab === "properties" && <PropertiesTab />}
         {tab === "requests" && <RequestsTab />}
         {tab === "housing" && <HousingTab />}
+        {tab === "rentals" && <RentalsTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
     </AppShell>
@@ -131,7 +135,17 @@ function PropertiesTab() {
 
   const delMut = useMutation({
     mutationFn: deleteProperty,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["listings"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["listings"] }); toast.success("تم حذف العقار"); },
+    onError: (e: any) => toast.error(e.message || "تعذّر الحذف"),
+  });
+  const statusMut = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ListingStatus }) => updateProperty(id, { status } as any),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["listing"] });
+      toast.success(`تم تغيير الحالة إلى ${v.status}`);
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تحديث الحالة"),
   });
 
   return (
@@ -194,7 +208,25 @@ function PropertiesTab() {
                 </div>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {(["متاحة", "محجوزة", "مؤجرة"] as ListingStatus[]).map((s) => {
+                const active = l.status === s;
+                const pending = statusMut.isPending && statusMut.variables?.id === l.id && statusMut.variables?.status === s;
+                return (
+                  <button
+                    key={s}
+                    disabled={active || statusMut.isPending}
+                    onClick={() => statusMut.mutate({ id: l.id, status: s })}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+                      active ? "bg-primary text-primary-foreground" : "bg-secondary text-primary hover:bg-secondary/70"
+                    } disabled:opacity-60`}
+                  >
+                    {pending ? <Loader2 size={11} className="inline animate-spin" /> : s}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex gap-2">
               <button onClick={() => { setEditId(l.id); setShowForm(true); }} className="flex flex-1 items-center justify-center gap-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">
                 <Edit3 size={13} /> تعديل
               </button>
@@ -239,8 +271,9 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
         id = created.id;
       }
       if (file && id) await uploadPropertyImage(id, file);
+      toast.success(editId ? "تم تحديث العقار" : "تمت إضافة العقار");
       onSaved();
-    } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
+    } catch (e: any) { setErr(e.message); toast.error(e.message || "تعذّر الحفظ"); } finally { setLoading(false); }
   }
 
   return (
@@ -290,7 +323,8 @@ function RequestsTab() {
   const { data = [], isLoading } = useQuery({ queryKey: ["all-viewings"], queryFn: listAllViewingRequests });
   const updMut = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => updateViewingStatus(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-viewings"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-viewings"] }); toast.success("تم تحديث حالة الطلب"); },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
   });
   if (isLoading) return <p className="mt-6 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>;
   return (
@@ -416,6 +450,96 @@ function HousingTab() {
             <button onClick={() => upd.mutate({ id: r.id, status: "قيد المراجعة" })} className="flex-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">قيد المراجعة</button>
             <button onClick={() => upd.mutate({ id: r.id, status: "تمت المطابقة" })} className="flex-1 rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground">مطابقة</button>
             <button onClick={() => upd.mutate({ id: r.id, status: "مغلق" })} className="flex-1 rounded-full bg-destructive/10 py-2 text-xs font-bold text-destructive">إغلاق</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Verified renters: admin records who actually rented a property. Only
+// these students can submit a property/landlord rating (enforced by DB RLS).
+function RentalsTab() {
+  const qc = useQueryClient();
+  const { data: rentals = [], isLoading } = useQuery({ queryKey: ["rentals"], queryFn: listRentals });
+  const { data: properties = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
+  const { data: students = [] } = useQuery({ queryKey: ["students-lite"], queryFn: listStudents });
+  const [show, setShow] = useState(false);
+  const [form, setForm] = useState({ student_id: "", property_id: "", start_date: "", end_date: "", notes: "" });
+
+  const createMut = useMutation({
+    mutationFn: () => {
+      const prop = properties.find((p) => p.id === form.property_id);
+      return createRental({
+        student_id: form.student_id,
+        property_id: form.property_id,
+        landlord_id: prop?.landlordId,
+        start_date: form.start_date || null,
+        end_date: form.end_date || null,
+        notes: form.notes || null,
+      });
+    },
+    onSuccess: () => {
+      toast.success("تم توثيق الإيجار — يمكن للطالب الآن إضافة تقييم");
+      setShow(false);
+      setForm({ student_id: "", property_id: "", start_date: "", end_date: "", notes: "" });
+      qc.invalidateQueries({ queryKey: ["rentals"] });
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر إنشاء السجل"),
+  });
+  const delMut = useMutation({
+    mutationFn: (id: string) => deleteRental(id),
+    onSuccess: () => { toast.success("تم حذف السجل"); qc.invalidateQueries({ queryKey: ["rentals"] }); },
+    onError: (e: any) => toast.error(e.message || "تعذّر الحذف"),
+  });
+
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <button
+        onClick={() => setShow((s) => !s)}
+        className="flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground"
+      >
+        <KeyRound size={16} /> {show ? "إغلاق" : "توثيق إيجار جديد"}
+      </button>
+      {show && (
+        <form onSubmit={(e) => { e.preventDefault(); createMut.mutate(); }} className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-soft">
+          <select required value={form.student_id} onChange={(e) => setForm({ ...form, student_id: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+            <option value="" disabled>اختر طالب</option>
+            {students.map((s: any) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+          </select>
+          <select required value={form.property_id} onChange={(e) => setForm({ ...form, property_id: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs">
+            <option value="" disabled>اختر عقار</option>
+            {properties.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+          </select>
+          <div className="grid grid-cols-2 gap-2">
+            <input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+            <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+          </div>
+          <textarea rows={2} placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+          <button disabled={createMut.isPending} className="flex items-center justify-center gap-2 rounded-full bg-gold py-2 text-xs font-bold text-gold-foreground disabled:opacity-60">
+            {createMut.isPending && <Loader2 size={12} className="animate-spin" />}
+            حفظ التوثيق
+          </button>
+        </form>
+      )}
+
+      {isLoading && <p className="text-center text-xs text-muted-foreground">جارٍ التحميل...</p>}
+      {!isLoading && rentals.length === 0 && (
+        <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا يوجد إيجارات موثقة بعد.</p>
+      )}
+      {rentals.map((r: any) => (
+        <div key={r.id} className="rounded-2xl bg-card p-4 shadow-soft">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-primary">{r.students?.full_name ?? "طالب"}</p>
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{r.properties?.title ?? "—"}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {r.start_date ?? "—"} ← {r.end_date ?? "—"}
+              </p>
+            </div>
+            <button onClick={() => { if (confirm("حذف السجل؟")) delMut.mutate(r.id); }} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">
+              حذف
+            </button>
           </div>
         </div>
       ))}

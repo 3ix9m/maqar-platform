@@ -291,6 +291,64 @@ export type Database = {
           },
         ]
       }
+      rentals: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          landlord_id: string | null
+          notes: string | null
+          property_id: string
+          start_date: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          landlord_id?: string | null
+          notes?: string | null
+          property_id: string
+          start_date?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          landlord_id?: string | null
+          notes?: string | null
+          property_id?: string
+          start_date?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_landlord_id_fkey"
+            columns: ["landlord_id"]
+            isOneToOne: false
+            referencedRelation: "landlords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
@@ -393,6 +451,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      student_rented_property: {
+        Args: { _property_id: string; _student_id: string }
         Returns: boolean
       }
     }

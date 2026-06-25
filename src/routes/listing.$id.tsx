@@ -1,15 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
-  ShieldCheck, Star, Clock, Building2, Heart,
+  ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { StatusPill, VerifiedBadge } from "@/components/ListingCard";
 import { RatingDialog } from "@/components/RatingDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchListing, listFavorites, toggleFavorite } from "@/lib/api";
+import { fetchListing, hasStudentRented, listFavorites, toggleFavorite } from "@/lib/api";
+import { openWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/listing/$id")({
@@ -49,7 +51,18 @@ function ListingDetail() {
   const isFav = favIds.includes(l!.id);
   const favMut = useMutation({
     mutationFn: () => toggleFavorite(user!.id, l!.id, !isFav),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["favorites", user?.id] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["favorites", user?.id] });
+      toast.success(isFav ? "تمت إزالته من المفضلة" : "تمت إضافته إلى المفضلة");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تحديث المفضلة"),
+  });
+  // Verified-renter check: drives whether we show the rating CTA or a
+  // helpful note explaining why the button isn't available.
+  const { data: canRate = false } = useQuery({
+    queryKey: ["can-rate", user?.id, l?.id],
+    queryFn: () => hasStudentRented(user!.id, l!.id),
+    enabled: !!user && !!l,
   });
 
   if (!l) return null;
@@ -150,7 +163,7 @@ function ListingDetail() {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-primary">التقييمات</h2>
-            {user && (
+            {user && canRate && (
               <button
                 type="button"
                 onClick={() => setRateOpen(true)}
@@ -158,6 +171,11 @@ function ListingDetail() {
               >
                 أضف تقييمك
               </button>
+            )}
+            {user && !canRate && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-[10px] font-bold text-muted-foreground">
+                <Lock size={10} /> متاح بعد الإيجار
+              </span>
             )}
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -192,13 +210,32 @@ function ListingDetail() {
           </div>
         </div>
 
-        <Link
-          to="/request-viewing/$id"
-          params={{ id: l.id }}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
-        >
-          طلب معاينة
-        </Link>
+        <div className="mt-5 flex flex-col gap-2">
+          {l.status === "متاحة" ? (
+            <Link
+              to="/request-viewing/$id"
+              params={{ id: l.id }}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
+            >
+              طلب معاينة
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-sm font-bold text-muted-foreground"
+            >
+              العقار غير متاح للحجز حالياً
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => openWhatsApp(l.title)}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-sm font-bold text-white shadow-card"
+          >
+            <MessageCircle size={16} /> تواصل عبر واتساب
+          </button>
+        </div>
       </div>
 
       {user && (

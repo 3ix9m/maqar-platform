@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Star, X, Loader2, ShieldCheck } from "lucide-react";
-import { getMyPropertyRating, submitPropertyRating, submitLandlordRating } from "@/lib/api";
+import { Star, X, Loader2, ShieldCheck, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { getMyPropertyRating, hasStudentRented, submitPropertyRating, submitLandlordRating } from "@/lib/api";
 
 const CATS: { key: "cleanliness" | "internet" | "furniture" | "quietness"; label: string }[] = [
   { key: "cleanliness", label: "النظافة" },
@@ -50,10 +51,16 @@ export function RatingDialog({
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Verified-renter gate: only students with a `rentals` row for this
+  // property are allowed to submit a review. Until we confirm, we hide the
+  // submit button to avoid an inevitable RLS rejection.
+  const [eligible, setEligible] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setErr(null);
+    setEligible(null);
+    hasStudentRented(studentId, propertyId).then(setEligible);
     getMyPropertyRating(studentId, propertyId).then((r) => {
       if (r) {
         setValues({
@@ -71,6 +78,10 @@ export function RatingDialog({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!eligible) {
+      setErr("التقييم متاح فقط للطلاب الذين استأجروا هذا العقار عبر مَقَر.");
+      return;
+    }
     const missing = CATS.some((c) => values[c.key] === 0);
     if (missing) { setErr("قيّم كل البنود من فضلك"); return; }
     setLoading(true);
@@ -92,10 +103,13 @@ export function RatingDialog({
           rating: landlordRating,
         });
       }
+      toast.success("تم إرسال تقييمك، شكراً لك!");
       onSaved?.();
       onClose();
     } catch (e: any) {
-      setErr(e.message || "حدث خطأ");
+      const msg = e.message || "حدث خطأ";
+      setErr(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -114,6 +128,16 @@ export function RatingDialog({
         </div>
         <p className="mt-1 text-[11px] text-muted-foreground">تقييمك يساعد بقية الطلاب على اختيار أفضل سكن.</p>
 
+        {eligible === false && (
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
+            <Lock size={14} className="mt-0.5 shrink-0 text-destructive" />
+            <p className="text-[11px] leading-5 text-destructive">
+              التقييم متاح فقط للطلاب الذين استأجروا هذا العقار عبر مَقَر. سيتم تفعيل التقييم تلقائياً بعد توثيق الإيجار من الإدارة.
+            </p>
+          </div>
+        )}
+
+        <fieldset disabled={eligible === false} className="contents">
         <div className="mt-4 flex flex-col gap-3">
           {CATS.map((c) => (
             <div key={c.key} className="flex items-center justify-between rounded-2xl bg-secondary/50 px-3 py-2.5">
@@ -147,12 +171,13 @@ export function RatingDialog({
         {err && <p className="mt-2 text-xs text-destructive">{err}</p>}
 
         <button
-          disabled={loading}
+          disabled={loading || eligible === false}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
         >
           {loading && <Loader2 size={14} className="animate-spin" />}
-          إرسال التقييم
+          {eligible === false ? "غير متاح — لم تستأجر هذا العقار" : "إرسال التقييم"}
         </button>
+        </fieldset>
       </form>
     </div>
   );
