@@ -271,8 +271,9 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
         id = created.id;
       }
       if (file && id) await uploadPropertyImage(id, file);
+      toast.success(editId ? "تم تحديث العقار" : "تمت إضافة العقار");
       onSaved();
-    } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
+    } catch (e: any) { setErr(e.message); toast.error(e.message || "تعذّر الحفظ"); } finally { setLoading(false); }
   }
 
   return (
