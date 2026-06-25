@@ -63,6 +63,7 @@ export function ListingCard({
                   <Heart size={18} className={isFavorite ? "fill-current" : ""} />
                 </button>
               )}
+            </div>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{listing.area}</p>
             <div className="mt-1 flex items-center gap-2">
               <StatusPill listing={listing} />
