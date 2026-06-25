@@ -65,23 +65,30 @@ function SearchPage() {
   const results = useMemo(() => {
     const min = minPrice ? Number(minPrice) : 0;
     const max = maxPrice ? Number(maxPrice) : Infinity;
+    const maxD = maxDistance ? Number(maxDistance) : Infinity;
     return listings.filter((l) => {
       if (q && !`${l.title} ${l.area} ${l.type}`.includes(q)) return false;
       if (l.price < min || l.price > max) return false;
       if (types.length && !types.includes(l.type)) return false;
       if (verifiedOnly && !l.verified) return false;
+      if (university && maxDistance) {
+        if (l.latitude == null || l.longitude == null) return false;
+        const km = distanceKm(university, { lat: l.latitude, lng: l.longitude });
+        if (km > maxD) return false;
+      }
       return true;
     });
-  }, [listings, q, minPrice, maxPrice, types, verifiedOnly]);
+  }, [listings, q, minPrice, maxPrice, types, verifiedOnly, university, maxDistance]);
 
   const activeFilterCount =
-    (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + types.length + (verifiedOnly ? 1 : 0);
+    (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + types.length + (verifiedOnly ? 1 : 0) + (maxDistance ? 1 : 0);
 
   const clearFilters = () => {
     setMinPrice("");
     setMaxPrice("");
     setTypes([]);
     setVerifiedOnly(false);
+    setMaxDistance("");
   };
 
   return (
