@@ -95,7 +95,7 @@ function Overview() {
   ];
   return (
     <>
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         {stats.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl bg-card p-4 shadow-soft">
             <div className="flex items-center justify-between">
@@ -106,6 +106,12 @@ function Overview() {
           </div>
         ))}
       </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <QuickActions />
+        <RecentActivity />
+      </div>
+
       <div className="mt-4 rounded-2xl bg-primary p-5 text-primary-foreground shadow-card">
         <div className="flex items-center gap-2">
           <BarChart3 size={18} className="text-gold" />
@@ -118,6 +124,149 @@ function Overview() {
         </p>
       </div>
     </>
+  );
+}
+
+function QuickActions() {
+  const qc = useQueryClient();
+  const bulkMut = useMutation({
+    mutationFn: (status: ListingStatus) => bulkUpdatePropertyStatus(status),
+    onSuccess: (_d, status) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+      toast.success(`تم تحديث جميع العقارات إلى: ${status}`);
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث الجماعي"),
+  });
+  function confirmBulk(s: ListingStatus) {
+    if (confirm(`تأكيد: تحديث حالة كل العقارات إلى "${s}"؟`)) bulkMut.mutate(s);
+  }
+  function refreshAll() {
+    qc.invalidateQueries();
+    toast.success("تم تحديث البيانات");
+  }
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center gap-2">
+        <Zap size={16} className="text-gold" />
+        <p className="text-sm font-bold text-primary">إجراءات سريعة</p>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button onClick={() => confirmBulk("متاحة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          {bulkMut.isPending ? <Loader2 size={11} className="inline animate-spin" /> : "اجعل الكل متاحة"}
+        </button>
+        <button onClick={() => confirmBulk("مؤجرة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          اجعل الكل مؤجرة
+        </button>
+        <button onClick={() => confirmBulk("محجوزة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          اجعل الكل محجوزة
+        </button>
+        <button onClick={refreshAll} className="flex items-center justify-center gap-1 rounded-full bg-primary py-2 text-[11px] font-bold text-primary-foreground">
+          <RefreshCw size={11} /> تحديث البيانات
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RecentActivity() {
+  const { data = [], isLoading } = useQuery({ queryKey: ["admin-activity"], queryFn: () => listRecentActivity(8) });
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center gap-2">
+        <Activity size={16} className="text-gold" />
+        <p className="text-sm font-bold text-primary">آخر الطلبات والاستفسارات</p>
+      </div>
+      <div className="mt-3 flex flex-col gap-2">
+        {isLoading && <p className="text-center text-[11px] text-muted-foreground">جارٍ التحميل...</p>}
+        {!isLoading && data.length === 0 && <p className="text-center text-[11px] text-muted-foreground">لا توجد أنشطة بعد.</p>}
+        {data.map((a: any) => (
+          <div key={`${a.kind}-${a.id}`} className="flex items-start justify-between gap-2 rounded-xl bg-secondary/50 p-2">
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-bold text-primary">{a.student}</p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {a.kind === "viewing" ? "معاينة • " : "طلب سكن • "}{a.title}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-bold text-gold">{a.status}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UsersTab() {
+  const qc = useQueryClient();
+  const { data: users = [], isLoading } = useQuery({ queryKey: ["students-full"], queryFn: listStudentsFull });
+  const [q, setQ] = useState("");
+  const verifyMut = useMutation({
+    mutationFn: ({ id, v }: { id: string; v: boolean }) => setStudentVerified(id, v),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["students-full"] });
+      toast.success(v.v ? "تم توثيق المستخدم" : "تم إلغاء التوثيق");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
+  });
+  const filtered = useMemo(() => {
+    if (!q.trim()) return users;
+    const s = q.toLowerCase();
+    return users.filter((u: any) =>
+      (u.full_name ?? "").toLowerCase().includes(s) ||
+      (u.phone ?? "").toLowerCase().includes(s) ||
+      (u.university ?? "").toLowerCase().includes(s),
+    );
+  }, [users, q]);
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <label className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+        <Search size={14} className="text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="بحث بالاسم أو الهاتف أو الجامعة"
+          className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+        />
+      </label>
+      {isLoading && <p className="text-center text-xs text-muted-foreground">جارٍ التحميل...</p>}
+      {!isLoading && filtered.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا يوجد مستخدمون.</p>}
+      <div className="grid gap-3 md:grid-cols-2">
+        {filtered.map((u: any) => {
+          const pending = verifyMut.isPending && verifyMut.variables?.id === u.id;
+          return (
+            <div key={u.id} className="rounded-2xl bg-card p-4 shadow-soft">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
+                    <GraduationCap size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-primary">{u.full_name ?? "—"}</p>
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone size={10} />{u.phone ?? "—"}</p>
+                    {u.university && <p className="truncate text-[10px] text-muted-foreground">{u.university}</p>}
+                  </div>
+                </div>
+                {u.verified_renter && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                    <ShieldCheck size={10} /> موثّق
+                  </span>
+                )}
+              </div>
+              <button
+                disabled={pending}
+                onClick={() => verifyMut.mutate({ id: u.id, v: !u.verified_renter })}
+                className={`mt-3 flex w-full items-center justify-center gap-1 rounded-full py-2 text-[11px] font-bold disabled:opacity-60 ${
+                  u.verified_renter ? "bg-destructive/10 text-destructive" : "bg-primary text-primary-foreground"
+                }`}
+              >
+                {pending && <Loader2 size={11} className="animate-spin" />}
+                {u.verified_renter ? "إلغاء التوثيق" : "تفعيل التوثيق كمستأجر"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
