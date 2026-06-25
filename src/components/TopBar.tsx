@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, Menu, Bell, Heart, Home, Search, Inbox, User, BookOpen, HelpCircle, Building2, ShieldCheck, LogOut, Scale } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import logo from "@/assets/maqar-logo.png";
@@ -46,7 +46,40 @@ const menuItems = [
 
 function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, isAdmin, roles, signOut } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Auto-close on route change
+  useEffect(() => {
+    if (open) onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Close on ESC + lock scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
+
+  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/"));
+
+  const rowCls = (active: boolean) =>
+    `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${
+      active ? "bg-primary text-primary-foreground" : "text-primary hover:bg-secondary"
+    }`;
+  const iconCls = (active: boolean) =>
+    `grid h-8 w-8 place-items-center rounded-full ${
+      active ? "bg-gold text-primary" : "bg-secondary text-primary"
+    }`;
+
   return (
     <div className="fixed inset-0 z-50" dir="rtl">
       <button
@@ -68,37 +101,35 @@ function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
         )}
         <nav className="flex-1 overflow-y-auto px-3 py-3">
           <ul className="flex flex-col gap-1">
-            {menuItems.map(({ to, label, icon: Icon }) => (
-              <li key={to}>
-                <Link
-                  to={to}
-                  onClick={onClose}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-primary hover:bg-secondary"
-                >
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-secondary text-primary">
-                    <Icon size={15} />
-                  </span>
-                  {label}
-                </Link>
-              </li>
-            ))}
+            {menuItems.map(({ to, label, icon: Icon }) => {
+              const active = isActive(to);
+              return (
+                <li key={to}>
+                  <Link to={to} onClick={onClose} className={rowCls(active)} aria-current={active ? "page" : undefined}>
+                    <span className={iconCls(active)}>
+                      <Icon size={15} />
+                    </span>
+                    {label}
+                    {active && <span className="ms-auto h-1.5 w-1.5 rounded-full bg-gold" />}
+                  </Link>
+                </li>
+              );
+            })}
             {isAdmin && (
               <li>
-                <Link to="/admin" onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-primary hover:bg-secondary">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gold/15 text-gold">
-                    <ShieldCheck size={15} />
-                  </span>
+                <Link to="/admin" onClick={onClose} className={rowCls(isActive("/admin"))} aria-current={isActive("/admin") ? "page" : undefined}>
+                  <span className={iconCls(isActive("/admin"))}><ShieldCheck size={15} /></span>
                   لوحة الإدارة
+                  {isActive("/admin") && <span className="ms-auto h-1.5 w-1.5 rounded-full bg-gold" />}
                 </Link>
               </li>
             )}
             {roles.includes("landlord") && (
               <li>
-                <Link to="/landlord" onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-primary hover:bg-secondary">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-gold/15 text-gold">
-                    <Building2 size={15} />
-                  </span>
+                <Link to="/landlord" onClick={onClose} className={rowCls(isActive("/landlord"))} aria-current={isActive("/landlord") ? "page" : undefined}>
+                  <span className={iconCls(isActive("/landlord"))}><Building2 size={15} /></span>
                   لوحة المالك
+                  {isActive("/landlord") && <span className="ms-auto h-1.5 w-1.5 rounded-full bg-gold" />}
                 </Link>
               </li>
             )}
