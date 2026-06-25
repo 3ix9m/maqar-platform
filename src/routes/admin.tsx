@@ -485,6 +485,30 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
         </div>
         <textarea rows={2} placeholder="وصف" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
 
+        {/* Trust & badges (admin only) */}
+        <div className="rounded-xl border border-border p-3">
+          <p className="mb-2 flex items-center gap-1 text-xs font-bold text-primary">
+            <ShieldCheck size={12} className="text-gold" /> التوثيق والشارات
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-xs">
+              <input type="checkbox" checked={form.verified} onChange={(e) => setForm({ ...form, verified: e.target.checked })} />
+              عقار موثّق
+            </label>
+            <label className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-xs">
+              <input type="checkbox" checked={form.previously_rented} onChange={(e) => setForm({ ...form, previously_rented: e.target.checked })} />
+              تم تأجيره من قبل
+            </label>
+            <select value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs sm:col-span-2">
+              <option value="">بدون شارة</option>
+              <option value="الأكثر طلباً">الأكثر طلباً</option>
+              <option value="مميز">مميز</option>
+              <option value="جديد">جديد</option>
+              <option value="مرشّح لك">مرشّح لك</option>
+            </select>
+          </div>
+        </div>
+
         {/* Location picker */}
         <div className="rounded-xl border border-border p-3">
           <p className="mb-2 flex items-center gap-1 text-xs font-bold text-primary">
