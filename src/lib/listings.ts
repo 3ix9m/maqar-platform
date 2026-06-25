@@ -32,6 +32,8 @@ export interface Listing {
   detailRating: Rating;
   description: string;
   landlordId?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export function statusTone(s: ListingStatus) {
