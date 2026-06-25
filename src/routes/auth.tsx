@@ -34,16 +34,16 @@ function Auth() {
       const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
       setLoading(false);
       if (error) return setErr(error.message);
-      navigate({ to: "/" });
+      goNext();
     } else {
       const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { emailRedirectTo: `${window.location.origin}/`, data: { full_name: form.full_name, phone: form.phone } },
+        options: { emailRedirectTo: `${window.location.origin}${safeRedirect}`, data: { full_name: form.full_name, phone: form.phone } },
       });
       setLoading(false);
       if (error) return setErr(error.message);
-      navigate({ to: "/" });
+      goNext();
     }
   }
 
