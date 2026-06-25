@@ -15,13 +15,72 @@ import { distanceKm } from "@/lib/universities";
 import { toast } from "sonner";
 import type { ListingType } from "@/lib/listings";
 
+type SearchParams = {
+  q?: string;
+  type?: string;
+  verified?: boolean;
+  min?: number;
+  max?: number;
+  view?: "list" | "map";
+};
+
+const SITE = "https://maqar.lovable.app";
+
+function buildSeo(search: SearchParams) {
+  const parts: string[] = [];
+  if (search.type) parts.push(search.type);
+  if (search.q) parts.push(`في ${search.q}`);
+  if (search.verified) parts.push("موثقة");
+  if (search.min || search.max) {
+    const range = `${search.min ?? 0}–${search.max ?? "∞"} ج`;
+    parts.push(range);
+  }
+  const filterLabel = parts.length ? parts.join(" · ") : "كل العقارات";
+  const title = `${filterLabel} | بحث سكن طلابي — مَقَر`;
+  const description = parts.length
+    ? `نتائج البحث عن سكن طلابي: ${filterLabel}. قارن الأسعار، شاهد على الخريطة، وتواصل عبر واتساب.`
+    : "ابحث وفلتر العقارات الطلابية حسب السعر والنوع والتوثيق والمسافة عن جامعتك وشاهدها على الخريطة.";
+
+  // Canonical: include only stable, indexable filters (type, verified). 
+  // Free-text q and price ranges stay out to avoid infinite duplicate URLs.
+  const canonicalParams = new URLSearchParams();
+  if (search.type) canonicalParams.set("type", search.type);
+  if (search.verified) canonicalParams.set("verified", "1");
+  const qs = canonicalParams.toString();
+  const canonical = qs ? `${SITE}/search?${qs}` : `${SITE}/search`;
+
+  return { title, description, canonical };
+}
+
 export const Route = createFileRoute("/search")({
-  head: () => ({
-    meta: [
-      { title: "البحث | مَقَر" },
-      { name: "description", content: "ابحث وفلتر العقارات حسب السعر والنوع والتوثيق وشاهدها على الخريطة." },
-    ],
+  validateSearch: (s: Record<string, unknown>): SearchParams => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    type: typeof s.type === "string" ? s.type : undefined,
+    verified: s.verified === true || s.verified === "1" || s.verified === "true",
+    min: s.min != null && !isNaN(Number(s.min)) ? Number(s.min) : undefined,
+    max: s.max != null && !isNaN(Number(s.max)) ? Number(s.max) : undefined,
+    view: s.view === "map" ? "map" : "list",
   }),
+  head: ({ search }) => {
+    const { title, description, canonical } = buildSeo(search as SearchParams);
+    const hasQuery = !!(search as SearchParams).q || !!(search as SearchParams).min || !!(search as SearchParams).max;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Noindex deep/long-tail query combos to keep the index clean.
+        ...(hasQuery ? [{ name: "robots", content: "noindex,follow" }] : []),
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
   component: SearchPage,
 });
 
