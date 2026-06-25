@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Star, X, Loader2, ShieldCheck } from "lucide-react";
-import { getMyPropertyRating, submitPropertyRating, submitLandlordRating } from "@/lib/api";
+import { Star, X, Loader2, ShieldCheck, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { getMyPropertyRating, hasStudentRented, submitPropertyRating, submitLandlordRating } from "@/lib/api";
 
 const CATS: { key: "cleanliness" | "internet" | "furniture" | "quietness"; label: string }[] = [
   { key: "cleanliness", label: "النظافة" },
@@ -50,10 +51,16 @@ export function RatingDialog({
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Verified-renter gate: only students with a `rentals` row for this
+  // property are allowed to submit a review. Until we confirm, we hide the
+  // submit button to avoid an inevitable RLS rejection.
+  const [eligible, setEligible] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setErr(null);
+    setEligible(null);
+    hasStudentRented(studentId, propertyId).then(setEligible);
     getMyPropertyRating(studentId, propertyId).then((r) => {
       if (r) {
         setValues({
@@ -71,6 +78,10 @@ export function RatingDialog({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!eligible) {
+      setErr("التقييم متاح فقط للطلاب الذين استأجروا هذا العقار عبر مَقَر.");
+      return;
+    }
     const missing = CATS.some((c) => values[c.key] === 0);
     if (missing) { setErr("قيّم كل البنود من فضلك"); return; }
     setLoading(true);
@@ -92,10 +103,13 @@ export function RatingDialog({
           rating: landlordRating,
         });
       }
+      toast.success("تم إرسال تقييمك، شكراً لك!");
       onSaved?.();
       onClose();
     } catch (e: any) {
-      setErr(e.message || "حدث خطأ");
+      const msg = e.message || "حدث خطأ";
+      setErr(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
