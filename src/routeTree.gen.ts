@@ -17,6 +17,7 @@ import { Route as HousingRequestRouteImport } from './routes/housing-request'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RequestViewingIdRouteImport } from './routes/request-viewing.$id'
@@ -64,6 +65,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -98,6 +104,7 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/compare': typeof CompareRoute
   '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
   '/guide': typeof GuideRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/compare': typeof CompareRoute
   '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
   '/guide': typeof GuideRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/compare': typeof CompareRoute
   '/faq': typeof FaqRoute
   '/favorites': typeof FavoritesRoute
   '/guide': typeof GuideRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/compare'
     | '/faq'
     | '/favorites'
     | '/guide'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/compare'
     | '/faq'
     | '/favorites'
     | '/guide'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/compare'
     | '/faq'
     | '/favorites'
     | '/guide'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  CompareRoute: typeof CompareRoute
   FaqRoute: typeof FaqRoute
   FavoritesRoute: typeof FavoritesRoute
   GuideRoute: typeof GuideRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -318,6 +338,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  CompareRoute: CompareRoute,
   FaqRoute: FaqRoute,
   FavoritesRoute: FavoritesRoute,
   GuideRoute: GuideRoute,

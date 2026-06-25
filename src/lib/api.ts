@@ -384,3 +384,41 @@ export async function listRecentActivity(limit = 8) {
   return items.slice(0, limit);
 }
 
+// ───────────── Price Alerts ─────────────
+export interface PriceAlertRow {
+  id: string;
+  student_id: string;
+  area: string | null;
+  type: string | null;
+  max_price: number | null;
+  verified_only: boolean;
+  created_at: string;
+}
+
+export async function listPriceAlerts(userId: string): Promise<PriceAlertRow[]> {
+  const { data, error } = await (supabase as any)
+    .from("price_alerts")
+    .select("*")
+    .eq("student_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as PriceAlertRow[];
+}
+
+export async function createPriceAlert(input: {
+  student_id: string;
+  area?: string | null;
+  type?: string | null;
+  max_price?: number | null;
+  verified_only?: boolean;
+}) {
+  const { error } = await (supabase as any).from("price_alerts").insert(input as any);
+  if (error) throw error;
+}
+
+export async function deletePriceAlert(id: string) {
+  const { error } = await (supabase as any).from("price_alerts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+

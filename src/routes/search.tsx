@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search as SearchIcon, SlidersHorizontal, ShieldCheck, MapIcon, List, X } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, ShieldCheck, MapIcon, List, X, Bell } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
 import { PropertyMap } from "@/components/PropertyMap";
+import { UniversityPicker } from "@/components/UniversityPicker";
+import { PriceAlertDialog } from "@/components/PriceAlertDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchListings, listFavorites, toggleFavorite } from "@/lib/api";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useUniversity } from "@/hooks/use-university";
+import { distanceKm } from "@/lib/universities";
 import { toast } from "sonner";
 import type { ListingType } from "@/lib/listings";
 
@@ -25,6 +29,7 @@ const TYPES: ListingType[] = ["شقة كاملة", "أوضة مفروشة", "س�
 
 function SearchPage() {
   const { user } = useAuth();
+  const { university } = useUniversity();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
@@ -33,6 +38,8 @@ function SearchPage() {
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [types, setTypes] = useState<ListingType[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<string>("");
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const { data: listings = [], isLoading } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const { data: favIds = [] } = useQuery({
@@ -58,30 +65,38 @@ function SearchPage() {
   const results = useMemo(() => {
     const min = minPrice ? Number(minPrice) : 0;
     const max = maxPrice ? Number(maxPrice) : Infinity;
+    const maxD = maxDistance ? Number(maxDistance) : Infinity;
     return listings.filter((l) => {
       if (q && !`${l.title} ${l.area} ${l.type}`.includes(q)) return false;
       if (l.price < min || l.price > max) return false;
       if (types.length && !types.includes(l.type)) return false;
       if (verifiedOnly && !l.verified) return false;
+      if (university && maxDistance) {
+        if (l.latitude == null || l.longitude == null) return false;
+        const km = distanceKm(university, { lat: l.latitude, lng: l.longitude });
+        if (km > maxD) return false;
+      }
       return true;
     });
-  }, [listings, q, minPrice, maxPrice, types, verifiedOnly]);
+  }, [listings, q, minPrice, maxPrice, types, verifiedOnly, university, maxDistance]);
 
   const activeFilterCount =
-    (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + types.length + (verifiedOnly ? 1 : 0);
+    (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + types.length + (verifiedOnly ? 1 : 0) + (maxDistance ? 1 : 0);
 
   const clearFilters = () => {
     setMinPrice("");
     setMaxPrice("");
     setTypes([]);
     setVerifiedOnly(false);
+    setMaxDistance("");
   };
 
   return (
     <AppShell>
       <TopBar variant="page" title="البحث" />
       <div className="px-5">
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
+        <UniversityPicker />
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
           <SearchIcon size={18} className="text-muted-foreground" />
           <input
             value={q}
@@ -113,6 +128,19 @@ function SearchPage() {
           >
             <ShieldCheck size={14} className={verifiedOnly ? "text-gold" : "text-muted-foreground"} />
             موثقة فقط
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!user) {
+                toast.error("سجّل دخولك أولاً");
+                return;
+              }
+              setAlertOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold shadow-soft"
+          >
+            <Bell size={14} /> تنبيه سعر
           </button>
           <div className="ms-auto flex overflow-hidden rounded-full border border-border bg-card shadow-soft">
             <button
@@ -174,6 +202,20 @@ function SearchPage() {
                 })}
               </div>
             </div>
+            {university && (
+              <div>
+                <p className="mb-1.5 text-xs font-bold text-primary">
+                  أقصى مسافة عن {university.name} (كم)
+                </p>
+                <input
+                  inputMode="numeric"
+                  value={maxDistance}
+                  onChange={(e) => setMaxDistance(e.target.value.replace(/[^\d.]/g, ""))}
+                  placeholder="مثلاً: 5"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none"
+                />
+              </div>
+            )}
             {activeFilterCount > 0 && (
               <button
                 type="button"
@@ -225,6 +267,11 @@ function SearchPage() {
           )}
         </div>
       </div>
+      <PriceAlertDialog
+        open={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        initial={{ area: q, type: types[0], maxPrice, verifiedOnly }}
+      />
     </AppShell>
   );
 }
