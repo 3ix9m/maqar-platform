@@ -148,7 +148,18 @@ function ListingDetail() {
         </div>
 
         <div className="mt-6">
-          <h2 className="text-sm font-bold text-primary">التقييمات</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-primary">التقييمات</h2>
+            {user && (
+              <button
+                type="button"
+                onClick={() => setRateOpen(true)}
+                className="rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold"
+              >
+                أضف تقييمك
+              </button>
+            )}
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {ratings.map((r) => (
               <div key={r.label} className="rounded-xl bg-card p-3 shadow-soft">
