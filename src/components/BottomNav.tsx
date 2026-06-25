@@ -14,7 +14,7 @@ export function BottomNav() {
   return (
     <nav
       dir="rtl"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden"
     >
       <ul className="flex items-center justify-between">
         {items.map(({ to, label, icon: Icon }) => {
