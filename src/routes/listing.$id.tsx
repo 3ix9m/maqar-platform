@@ -200,6 +200,17 @@ function ListingDetail() {
           طلب معاينة
         </Link>
       </div>
+
+      {user && (
+        <RatingDialog
+          open={rateOpen}
+          onClose={() => setRateOpen(false)}
+          studentId={user.id}
+          propertyId={l.id}
+          landlordId={l.landlordId}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["listing", l.id] })}
+        />
+      )}
     </AppShell>
   );
 }
