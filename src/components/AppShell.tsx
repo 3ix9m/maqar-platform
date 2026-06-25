@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Heart, Inbox, User, Bell } from "lucide-react";
+import { Home, Search, Heart, User, Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ const navItems = [
   { to: "/", label: "الرئيسية", icon: Home },
   { to: "/search", label: "بحث", icon: Search },
   { to: "/favorites", label: "المفضلة", icon: Heart },
-  { to: "/my-requests", label: "طلباتي", icon: Inbox },
+  { to: "/notifications", label: "الإشعارات", icon: Bell },
   { to: "/profile", label: "حسابي", icon: User },
 ] as const;
 
