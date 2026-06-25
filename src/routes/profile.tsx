@@ -78,6 +78,11 @@ function Profile() {
         </div>
       </div>
 
+
+      <div className="mt-4 px-5">
+        <UniversityPicker />
+      </div>
+
       <ul className="mt-4 flex flex-col gap-2 px-5">
         {items.map(({ to, label, icon: Icon }) => (
           <li key={label}>
@@ -93,6 +98,43 @@ function Profile() {
           </li>
         ))}
       </ul>
+
+      {user && (
+        <div className="mt-5 px-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Bell size={14} className="text-gold" />
+            <p className="text-[12px] font-bold text-primary">تنبيهات السعر</p>
+          </div>
+          {alerts.length === 0 ? (
+            <Link to="/search" className="block rounded-2xl border border-dashed border-border bg-card p-4 text-center text-[11px] text-muted-foreground">
+              لا توجد تنبيهات. أنشئ واحدًا من صفحة البحث.
+            </Link>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {alerts.map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-2 rounded-2xl bg-card p-3 shadow-soft">
+                  <div className="min-w-0 text-[11px] text-primary">
+                    <p className="truncate font-bold">
+                      {a.type || "أي نوع"} {a.area ? `• ${a.area}` : ""}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {a.max_price ? `حتى ${Number(a.max_price).toLocaleString("ar-EG")} ج` : "بدون سقف سعر"}
+                      {a.verified_only ? " • موثقة فقط" : ""}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => delMut.mutate(a.id)}
+                    aria-label="حذف"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-destructive/10 text-destructive"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {(roles.includes("landlord") || isAdmin) && (
         <div className="mt-5 px-5">
