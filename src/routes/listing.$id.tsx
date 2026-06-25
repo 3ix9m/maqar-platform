@@ -1,7 +1,7 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
-  ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock,
+  ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
