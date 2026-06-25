@@ -1,32 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Listing } from "@/lib/listings";
-
-declare global {
-  interface Window {
-    google?: any;
-    __maqarMapInit?: () => void;
-  }
-}
-
-const MAPS_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
-const MAPS_CHANNEL = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as string | undefined;
-
-let loaderPromise: Promise<void> | null = null;
-function loadGoogleMaps(): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject();
-  if (window.google?.maps) return Promise.resolve();
-  if (loaderPromise) return loaderPromise;
-  if (!MAPS_KEY) return Promise.reject(new Error("missing google maps key"));
-  loaderPromise = new Promise<void>((resolve, reject) => {
-    window.__maqarMapInit = () => resolve();
-    const s = document.createElement("script");
-    s.async = true;
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&loading=async&callback=__maqarMapInit${MAPS_CHANNEL ? `&channel=${MAPS_CHANNEL}` : ""}`;
-    s.onerror = () => reject(new Error("failed to load google maps"));
-    document.head.appendChild(s);
-  });
-  return loaderPromise;
-}
+import { hasMapsKey, loadGoogleMaps } from "@/lib/google-maps";
 
 export function PropertyMap({ listings }: { listings: Listing[] }) {
   const mapEl = useRef<HTMLDivElement>(null);
@@ -44,14 +18,13 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
         const g = window.google.maps;
         const center = points.length
           ? { lat: Number(points[0].latitude), lng: Number(points[0].longitude) }
-          : { lat: 30.0444, lng: 31.2357 }; // Cairo fallback
+          : { lat: 30.0444, lng: 31.2357 };
         mapRef.current ||= new g.Map(mapEl.current, {
           center,
           zoom: 13,
           disableDefaultUI: true,
           zoomControl: true,
         });
-        // clear old markers
         markersRef.current.forEach((m) => m.setMap(null));
         markersRef.current = [];
         const info = new g.InfoWindow();
@@ -76,15 +49,13 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
         if (points.length > 1) mapRef.current.fitBounds(bounds, 60);
         else if (points.length === 1) mapRef.current.setCenter(center);
       })
-      .catch(() => {
-        /* surfaced as fallback UI below */
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [points.map((p) => p.id).join(",")]);
 
-  if (!MAPS_KEY) {
+  if (!hasMapsKey()) {
     return (
       <div className="grid h-56 w-full place-items-center rounded-2xl bg-secondary text-xs text-muted-foreground">
         الخريطة غير متاحة حالياً
@@ -99,4 +70,37 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
     );
   }
   return <div ref={mapEl} className="h-64 w-full overflow-hidden rounded-2xl shadow-soft" />;
+}
+
+export function SingleLocationMap({ lat, lng, title }: { lat: number; lng: number; title?: string }) {
+  const el = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!el.current) return;
+    loadGoogleMaps()
+      .then(() => {
+        if (cancelled || !el.current) return;
+        const g = window.google.maps;
+        const pos = { lat: Number(lat), lng: Number(lng) };
+        const map = new g.Map(el.current, {
+          center: pos,
+          zoom: 15,
+          disableDefaultUI: true,
+          zoomControl: true,
+          clickableIcons: false,
+        });
+        new g.Marker({ position: pos, map, title });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [lat, lng, title]);
+
+  if (!hasMapsKey()) {
+    return (
+      <div className="grid h-48 w-full place-items-center rounded-2xl bg-secondary text-xs text-muted-foreground">
+        الخريطة غير متاحة
+      </div>
+    );
+  }
+  return <div ref={el} className="h-48 w-full overflow-hidden rounded-2xl border border-border" />;
 }

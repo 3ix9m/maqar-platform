@@ -5,15 +5,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAdminStats, fetchListings, deleteProperty, updateProperty, createProperty,
   listLandlords, createLandlord, deleteLandlord, updateLandlordById,
-  listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
+  listAllViewingRequests, updateViewingStatus, uploadPropertyImages,
+  listPropertyImages, deletePropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
   listRentals, createRental, deleteRental, listStudents,
 } from "@/lib/api";
-import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound } from "lucide-react";
+import { statusTone, resolveImage, type ListingStatus } from "@/lib/listings";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { LocationPicker } from "@/components/LocationPicker";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة | مَقَر" }] }),
@@ -242,6 +244,7 @@ function PropertiesTab() {
 }
 
 function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
+  const qc = useQueryClient();
   const [form, setForm] = useState({
     landlord_id: existing?.landlordId ?? landlords[0]?.id ?? "",
     title: existing?.title ?? "",
@@ -253,10 +256,29 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     rooms: existing?.rooms ?? 1,
     baths: existing?.baths ?? 1,
     description: existing?.description ?? "",
+    latitude: (existing?.latitude ?? null) as number | null,
+    longitude: (existing?.longitude ?? null) as number | null,
   });
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const { data: existingImages = [] } = useQuery({
+    queryKey: ["property-images", editId],
+    queryFn: () => listPropertyImages(editId!),
+    enabled: !!editId,
+  });
+
+  const delImgMut = useMutation({
+    mutationFn: ({ id, url }: { id: string; url: string }) => deletePropertyImage(id, url),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["property-images", editId] });
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["listing", editId] });
+      toast.success("تم حذف الصورة");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر الحذف"),
+  });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -264,13 +286,16 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     setErr(null);
     try {
       let id = editId;
+      const payload: any = { ...form };
+      if (payload.latitude == null) delete payload.latitude;
+      if (payload.longitude == null) delete payload.longitude;
       if (editId) {
-        await updateProperty(editId, form);
+        await updateProperty(editId, payload);
       } else {
-        const created = await createProperty(form as any);
+        const created = await createProperty(payload);
         id = created.id;
       }
-      if (file && id) await uploadPropertyImage(id, file);
+      if (files.length && id) await uploadPropertyImages(id, files);
       toast.success(editId ? "تم تحديث العقار" : "تمت إضافة العقار");
       onSaved();
     } catch (e: any) { setErr(e.message); toast.error(e.message || "تعذّر الحفظ"); } finally { setLoading(false); }
@@ -304,10 +329,70 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
           <input type="number" placeholder="حمامات" value={form.baths} onChange={(e) => setForm({ ...form, baths: Number(e.target.value) })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
         </div>
         <textarea rows={2} placeholder="وصف" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
-        <label className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-          <Upload size={14} className="text-gold" />
-          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+
+        {/* Location picker */}
+        <div className="rounded-xl border border-border p-3">
+          <p className="mb-2 flex items-center gap-1 text-xs font-bold text-primary">
+            <MapPin size={12} className="text-gold" /> موقع العقار على الخريطة
+          </p>
+          <LocationPicker
+            value={{ lat: form.latitude, lng: form.longitude }}
+            onChange={({ lat, lng }) => setForm({ ...form, latitude: lat, longitude: lng })}
+          />
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <input
+              type="number" step="any" placeholder="خط العرض"
+              value={form.latitude ?? ""}
+              onChange={(e) => setForm({ ...form, latitude: e.target.value === "" ? null : Number(e.target.value) })}
+              className="rounded-xl border border-border bg-card px-3 py-2 text-xs"
+            />
+            <input
+              type="number" step="any" placeholder="خط الطول"
+              value={form.longitude ?? ""}
+              onChange={(e) => setForm({ ...form, longitude: e.target.value === "" ? null : Number(e.target.value) })}
+              className="rounded-xl border border-border bg-card px-3 py-2 text-xs"
+            />
+          </div>
+        </div>
+
+        {/* Existing images (edit mode) */}
+        {editId && existingImages.length > 0 && (
+          <div className="rounded-xl border border-border p-3">
+            <p className="mb-2 flex items-center gap-1 text-xs font-bold text-primary">
+              <ImageIcon size={12} className="text-gold" /> الصور الحالية ({existingImages.length})
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {existingImages.map((img: any) => (
+                <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg">
+                  <img src={resolveImage(img.url)} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm("حذف الصورة؟")) delImgMut.mutate({ id: img.id, url: img.url }); }}
+                    className="absolute left-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-destructive/90 text-white"
+                    aria-label="حذف"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Multi upload */}
+        <label className="flex flex-col gap-1 rounded-xl border border-dashed border-border bg-card px-3 py-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <Upload size={14} className="text-gold" />
+            رفع صور جديدة (يمكنك اختيار أكثر من صورة)
+          </span>
+          <input
+            type="file" accept="image/*" multiple
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            className="text-xs"
+          />
+          {files.length > 0 && <span className="text-[11px] text-primary">تم اختيار {files.length} صورة</span>}
         </label>
+
         {err && <p className="text-xs text-destructive">{err}</p>}
         <button disabled={loading} className="mt-1 flex items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60">
           {loading && <Loader2 size={12} className="animate-spin" />}
@@ -316,6 +401,7 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
       </div>
     </form>
   );
+
 }
 
 function RequestsTab() {
