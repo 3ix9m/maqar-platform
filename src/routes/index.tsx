@@ -39,11 +39,6 @@ const faqs = [
   { q: "ما متوسط الإيجار حول الجامعة؟", a: "يتراوح بين 1,200 و 4,500 جنيه شهرياً حسب النوع والموقع." },
 ];
 
-const articles = [
-  { slug: "best-areas", title: "أفضل المناطق حول جامعة ميريت" },
-  { slug: "prices", title: "متوسط أسعار السكن الطلابي" },
-  { slug: "tips", title: "نصائح ذهبية قبل استئجار السكن" },
-];
 
 function Home() {
   const { data: listings = [], isLoading } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
@@ -117,22 +112,6 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-6 px-5">
-        <SectionHeader title="دليل السكن الطلابي" to="/help" icon={BookOpen} />
-        <div className="mt-3 flex flex-col gap-2">
-          {articles.map((a) => (
-            <Link key={a.slug} to="/help" className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
-              <div className="flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
-                  <BookOpen size={16} />
-                </span>
-                <p className="text-sm font-bold text-primary">{a.title}</p>
-              </div>
-              <ChevronLeft size={18} className="text-muted-foreground" />
-            </Link>
-          ))}
-        </div>
-      </section>
 
       <section className="mt-6 px-5">
         <SectionHeader title="الأسئلة الشائعة" to="/help" icon={HelpCircle} />
