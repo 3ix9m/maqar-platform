@@ -95,7 +95,8 @@ function SearchPage() {
     <AppShell>
       <TopBar variant="page" title="البحث" />
       <div className="px-5">
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
+        <UniversityPicker />
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-soft">
           <SearchIcon size={18} className="text-muted-foreground" />
           <input
             value={q}
@@ -127,6 +128,19 @@ function SearchPage() {
           >
             <ShieldCheck size={14} className={verifiedOnly ? "text-gold" : "text-muted-foreground"} />
             موثقة فقط
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!user) {
+                toast.error("سجّل دخولك أولاً");
+                return;
+              }
+              setAlertOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold shadow-soft"
+          >
+            <Bell size={14} /> تنبيه سعر
           </button>
           <div className="ms-auto flex overflow-hidden rounded-full border border-border bg-card shadow-soft">
             <button
