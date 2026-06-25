@@ -410,6 +410,9 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     description: existing?.description ?? "",
     latitude: (existing?.latitude ?? null) as number | null,
     longitude: (existing?.longitude ?? null) as number | null,
+    verified: !!existing?.verified,
+    previously_rented: !!existing?.previouslyRented,
+    badge: (existing?.badge ?? "") as string,
   });
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
