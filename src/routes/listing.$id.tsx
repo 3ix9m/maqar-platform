@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock,
