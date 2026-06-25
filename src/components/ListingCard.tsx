@@ -22,7 +22,22 @@ export function VerifiedBadge() {
   );
 }
 
-export function ListingCard({ listing, variant = "grid" }: { listing: Listing; variant?: "grid" | "row" }) {
+export function ListingCard({
+  listing,
+  variant = "grid",
+  isFavorite = false,
+  onToggleFavorite,
+}: {
+  listing: Listing;
+  variant?: "grid" | "row";
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string, next: boolean) => void;
+}) {
+  const handleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleFavorite?.(listing.id, !isFavorite);
+  };
   if (variant === "row") {
     return (
       <Link to="/listing/$id" params={{ id: listing.id }} className="flex gap-3 rounded-2xl bg-card p-3 shadow-soft">
