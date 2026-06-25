@@ -68,13 +68,21 @@ function AdminDashboard() {
 
 function Overview() {
   const { data: s } = useQuery({ queryKey: ["admin-stats"], queryFn: fetchAdminStats });
+  const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
+  const avg = useMemo(() => {
+    const rated = listings.filter((l) => l.ratingsCount > 0);
+    if (!rated.length) return "—";
+    return (rated.reduce((sum, l) => sum + l.rating, 0) / rated.length).toFixed(1);
+  }, [listings]);
+  const available = listings.filter((l) => l.status === "متاحة").length;
   const stats = [
     { label: "الطلاب", value: s?.students ?? 0, icon: Users },
     { label: "الملاك", value: s?.landlords ?? 0, icon: Building2 },
     { label: "العقارات", value: s?.properties ?? 0, icon: Building2 },
+    { label: "متاحة الآن", value: available, icon: CheckCircle2 },
     { label: "طلبات معاينة", value: s?.viewingRequests ?? 0, icon: Inbox },
-    { label: "طلبات سكن", value: s?.housingRequests ?? 0, icon: CheckCircle2 },
-    { label: "متوسط التقييم", value: "—", icon: Star },
+    { label: "طلبات سكن", value: s?.housingRequests ?? 0, icon: HomeIcon },
+    { label: "متوسط التقييم", value: avg, icon: Star },
   ];
   return (
     <>
@@ -95,7 +103,9 @@ function Overview() {
           <p className="text-sm font-bold">رؤى سوق السكن</p>
         </div>
         <p className="mt-2 text-xs leading-6 text-primary-foreground/80">
-          متوسط الإيجار ارتفع 8٪ هذا الفصل، والطلب الأعلى على الأوض المفروشة.
+          {listings.length > 0
+            ? `${available} عقار متاح حالياً، بمتوسط سعر ${Math.round(listings.reduce((a, l) => a + l.price, 0) / Math.max(1, listings.length)).toLocaleString("ar-EG")} ج/شهر.`
+            : "ابدأ بإضافة عقارات لرؤية الإحصائيات."}
         </p>
       </div>
     </>
