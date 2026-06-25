@@ -310,6 +310,7 @@ function ListingDetail() {
           ) : (
             <Link
               to="/auth"
+              search={{ redirect: `/listing/${l.id}` }}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
             >
               <LogIn size={16} />
