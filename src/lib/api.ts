@@ -67,11 +67,28 @@ export async function uploadPropertyImage(propertyId: string, file: File) {
   return data;
 }
 
+export async function uploadPropertyImages(propertyId: string, files: File[]) {
+  const results = [];
+  for (const f of files) results.push(await uploadPropertyImage(propertyId, f));
+  return results;
+}
+
+export async function listPropertyImages(propertyId: string) {
+  const { data, error } = await supabase
+    .from("property_images")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function deletePropertyImage(id: string, path: string) {
   await supabase.storage.from("properties").remove([path]);
   const { error } = await supabase.from("property_images").delete().eq("id", id);
   if (error) throw error;
 }
+
 
 // ───────────── Favorites ─────────────
 export async function listFavorites(userId: string) {
