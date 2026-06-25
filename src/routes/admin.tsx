@@ -135,7 +135,17 @@ function PropertiesTab() {
 
   const delMut = useMutation({
     mutationFn: deleteProperty,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["listings"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["listings"] }); toast.success("تم حذف العقار"); },
+    onError: (e: any) => toast.error(e.message || "تعذّر الحذف"),
+  });
+  const statusMut = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ListingStatus }) => updateProperty(id, { status } as any),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["listing"] });
+      toast.success(`تم تغيير الحالة إلى ${v.status}`);
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تحديث الحالة"),
   });
 
   return (
