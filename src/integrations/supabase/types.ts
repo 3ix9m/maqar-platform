@@ -147,6 +147,36 @@ export type Database = {
         }
         Relationships: []
       }
+      price_alerts: {
+        Row: {
+          area: string | null
+          created_at: string
+          id: string
+          max_price: number | null
+          student_id: string
+          type: string | null
+          verified_only: boolean
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          id?: string
+          max_price?: number | null
+          student_id: string
+          type?: string | null
+          verified_only?: boolean
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          id?: string
+          max_price?: number | null
+          student_id?: string
+          type?: string | null
+          verified_only?: boolean
+        }
+        Relationships: []
+      }
       properties: {
         Row: {
           area: string | null
