@@ -7,10 +7,12 @@ import {
   listLandlords, createLandlord, deleteLandlord, updateLandlordById,
   listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
+  listRentals, createRental, deleteRental, listStudents,
 } from "@/lib/api";
 import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone } from "lucide-react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound } from "lucide-react";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -18,7 +20,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "housing" | "landlords";
+type Tab = "overview" | "properties" | "requests" | "housing" | "rentals" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -42,6 +44,7 @@ function AdminDashboard() {
             { id: "properties", label: "العقارات" },
             { id: "requests", label: "طلبات المعاينة" },
             { id: "housing", label: "طلبات السكن" },
+            { id: "rentals", label: "الإيجارات الموثقة" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
             <button
@@ -60,6 +63,7 @@ function AdminDashboard() {
         {tab === "properties" && <PropertiesTab />}
         {tab === "requests" && <RequestsTab />}
         {tab === "housing" && <HousingTab />}
+        {tab === "rentals" && <RentalsTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
     </AppShell>
