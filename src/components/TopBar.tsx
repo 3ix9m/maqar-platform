@@ -1,9 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, Menu, Bell, Heart, Home, Search, User, BookOpen, Building2, ShieldCheck, LogOut, Scale } from "lucide-react";
+import { ChevronRight, Menu, Bell, Heart, Home, Search, User, BookOpen, Building2, ShieldCheck, LogOut, Scale, Sun, Moon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import logo from "@/assets/maqar-logo.png";
 
 interface Props {
@@ -158,6 +159,9 @@ function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
 export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: Props) {
   const unread = useUnreadCount();
   const [open, setOpen] = useState(false);
+  const { theme, toggle } = useTheme();
+  const ThemeIcon = theme === "dark" ? Sun : Moon;
+  const themeLabel = theme === "dark" ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
 
   if (variant === "home") {
     return (
@@ -169,14 +173,19 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
           <Link to="/" className="flex items-center">
             <img src={logo} alt="مَقَر" className="h-16 w-auto" />
           </Link>
-          <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
-            <Bell size={24} />
-            {unread > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[9px] font-bold text-primary">
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
-          </Link>
+          <div className="flex items-center gap-1">
+            <button onClick={toggle} aria-label={themeLabel} className="rounded-full p-2 text-primary">
+              <ThemeIcon size={22} />
+            </button>
+            <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
+              <Bell size={24} />
+              {unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[9px] font-bold text-primary">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </Link>
+          </div>
         </header>
         <SideDrawer open={open} onClose={() => setOpen(false)} />
       </>
@@ -189,13 +198,16 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
         <ChevronRight size={24} />
       </Link>
       <h1 className="text-base font-bold text-primary">{title}</h1>
-      {showFavorite ? (
-        <button aria-label="المفضلة" className="rounded-full p-2 text-primary">
-          <Heart size={22} />
+      <div className="flex items-center">
+        <button onClick={toggle} aria-label={themeLabel} className="rounded-full p-2 text-primary">
+          <ThemeIcon size={20} />
         </button>
-      ) : (
-        <span className="w-10" />
-      )}
+        {showFavorite && (
+          <button aria-label="المفضلة" className="rounded-full p-2 text-primary">
+            <Heart size={22} />
+          </button>
+        )}
+      </div>
     </header>
   );
 }

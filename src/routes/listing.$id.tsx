@@ -16,11 +16,73 @@ import { openWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/listing/$id")({
-  head: () => ({ meta: [{ title: "تفاصيل العقار | مَقَر" }] }),
   loader: async ({ params }) => {
     const l = await fetchListing(params.id);
     if (!l) throw notFound();
     return l;
+  },
+  head: ({ params, loaderData }) => {
+    const url = `https://maqar.lovable.app/listing/${params.id}`;
+    if (!loaderData) {
+      return { meta: [{ title: "تفاصيل العقار | مَقَر" }] };
+    }
+    const l = loaderData;
+    const priceTxt = l.price.toLocaleString("ar-EG");
+    const desc =
+      (l.description?.trim().slice(0, 155)) ||
+      `${l.type} في ${l.area} بسعر ${priceTxt} ج/شهر — ${l.rooms} غرف، ${l.baths} حمام.`;
+    const title = `${l.title} — ${priceTxt} ج/شهر | مَقَر`;
+    const image = l.image?.startsWith("http") ? l.image : undefined;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(image ? [
+          { property: "og:image", content: image },
+          { name: "twitter:image", content: image },
+        ] : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Accommodation",
+          name: l.title,
+          description: desc,
+          address: { "@type": "PostalAddress", addressLocality: l.area, addressCountry: "EG" },
+          ...(image ? { image } : {}),
+          ...(l.latitude != null && l.longitude != null ? {
+            geo: { "@type": "GeoCoordinates", latitude: Number(l.latitude), longitude: Number(l.longitude) },
+          } : {}),
+          numberOfRooms: l.rooms,
+          numberOfBathroomsTotal: l.baths,
+          offers: {
+            "@type": "Offer",
+            price: l.price,
+            priceCurrency: "EGP",
+            availability: l.status === "متاحة"
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            url,
+          },
+          ...(l.ratingsCount > 0 ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: Number(l.rating.toFixed(2)),
+              reviewCount: l.ratingsCount,
+            },
+          } : {}),
+        }),
+      }],
+    };
   },
   notFoundComponent: () => (
     <AppShell><TopBar variant="page" title="تفاصيل العقار" /><p className="px-5 text-sm text-muted-foreground">العقار غير موجود.</p></AppShell>
