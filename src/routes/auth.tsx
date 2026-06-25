@@ -7,15 +7,20 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
+import { z } from "zod";
 
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({ meta: [{ title: "تسجيل الدخول | مَقَر" }] }),
   component: Auth,
 });
 
 function Auth() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
+  const safeRedirect = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+  const goNext = () => navigate({ to: safeRedirect });
   const [mode, setMode] = useState<"login" | "register">("login");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "" });
   const [err, setErr] = useState<string | null>(null);
