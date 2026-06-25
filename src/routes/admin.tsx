@@ -353,6 +353,25 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
               className="rounded-xl border border-border bg-card px-3 py-2 text-xs"
             />
           </div>
+          {form.latitude != null && form.longitude != null && (
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1"><MapPin size={11} className="text-gold" /> معاينة فورية للموقع</span>
+                <a
+                  href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}
+                  target="_blank" rel="noreferrer"
+                  className="font-bold text-gold hover:underline"
+                >فتح في خرائط جوجل</a>
+              </div>
+              <iframe
+                key={`${form.latitude},${form.longitude}`}
+                title="معاينة الموقع"
+                src={`https://www.google.com/maps?q=${form.latitude},${form.longitude}&z=16&output=embed`}
+                className="h-40 w-full rounded-xl border border-border"
+                loading="lazy"
+              />
+            </div>
+          )}
         </div>
 
         {/* Existing images (edit mode) */}
