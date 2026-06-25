@@ -9,9 +9,10 @@ import {
   listPropertyImages, deletePropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
   listRentals, createRental, deleteRental, listStudents,
+  listStudentsFull, setStudentVerified, bulkUpdatePropertyStatus, listRecentActivity,
 } from "@/lib/api";
 import { statusTone, resolveImage, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon } from "lucide-react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,28 +23,29 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "housing" | "rentals" | "landlords";
+type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const { isAdmin, loading } = useAuth();
 
-  if (loading) return <AppShell><TopBar variant="page" title="لوحة الإدارة" backTo="/profile" /><p className="px-5 text-center text-xs text-muted-foreground">جارٍ التحميل...</p></AppShell>;
+  if (loading) return <AppShell wide><TopBar variant="page" title="لوحة الإدارة" backTo="/profile" /><p className="px-5 text-center text-xs text-muted-foreground">جارٍ التحميل...</p></AppShell>;
   if (!isAdmin) return (
-    <AppShell>
+    <AppShell wide>
       <TopBar variant="page" title="لوحة الإدارة" backTo="/profile" />
       <p className="px-5 text-center text-xs text-muted-foreground">هذه الصفحة للإدارة فقط.</p>
     </AppShell>
   );
 
   return (
-    <AppShell>
-      <TopBar variant="page" title="لوحة الإدارة" backTo="/profile" />
-      <div className="px-5">
+    <AppShell wide>
+      <TopBar variant="page" title="لوحة التحكم — Super Admin" backTo="/profile" />
+      <div className="px-4 md:px-6">
         <div className="flex gap-1 overflow-x-auto rounded-full bg-secondary p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
+            { id: "users", label: "المستخدمون" },
             { id: "requests", label: "طلبات المعاينة" },
             { id: "housing", label: "طلبات السكن" },
             { id: "rentals", label: "الإيجارات الموثقة" },
@@ -63,6 +65,7 @@ function AdminDashboard() {
 
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
+        {tab === "users" && <UsersTab />}
         {tab === "requests" && <RequestsTab />}
         {tab === "housing" && <HousingTab />}
         {tab === "rentals" && <RentalsTab />}
@@ -92,7 +95,7 @@ function Overview() {
   ];
   return (
     <>
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         {stats.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl bg-card p-4 shadow-soft">
             <div className="flex items-center justify-between">
@@ -103,6 +106,12 @@ function Overview() {
           </div>
         ))}
       </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <QuickActions />
+        <RecentActivity />
+      </div>
+
       <div className="mt-4 rounded-2xl bg-primary p-5 text-primary-foreground shadow-card">
         <div className="flex items-center gap-2">
           <BarChart3 size={18} className="text-gold" />
@@ -115,6 +124,149 @@ function Overview() {
         </p>
       </div>
     </>
+  );
+}
+
+function QuickActions() {
+  const qc = useQueryClient();
+  const bulkMut = useMutation({
+    mutationFn: (status: ListingStatus) => bulkUpdatePropertyStatus(status),
+    onSuccess: (_d, status) => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+      toast.success(`تم تحديث جميع العقارات إلى: ${status}`);
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث الجماعي"),
+  });
+  function confirmBulk(s: ListingStatus) {
+    if (confirm(`تأكيد: تحديث حالة كل العقارات إلى "${s}"؟`)) bulkMut.mutate(s);
+  }
+  function refreshAll() {
+    qc.invalidateQueries();
+    toast.success("تم تحديث البيانات");
+  }
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center gap-2">
+        <Zap size={16} className="text-gold" />
+        <p className="text-sm font-bold text-primary">إجراءات سريعة</p>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button onClick={() => confirmBulk("متاحة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          {bulkMut.isPending ? <Loader2 size={11} className="inline animate-spin" /> : "اجعل الكل متاحة"}
+        </button>
+        <button onClick={() => confirmBulk("مؤجرة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          اجعل الكل مؤجرة
+        </button>
+        <button onClick={() => confirmBulk("محجوزة")} disabled={bulkMut.isPending} className="rounded-full bg-secondary py-2 text-[11px] font-bold text-primary disabled:opacity-60">
+          اجعل الكل محجوزة
+        </button>
+        <button onClick={refreshAll} className="flex items-center justify-center gap-1 rounded-full bg-primary py-2 text-[11px] font-bold text-primary-foreground">
+          <RefreshCw size={11} /> تحديث البيانات
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RecentActivity() {
+  const { data = [], isLoading } = useQuery({ queryKey: ["admin-activity"], queryFn: () => listRecentActivity(8) });
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center gap-2">
+        <Activity size={16} className="text-gold" />
+        <p className="text-sm font-bold text-primary">آخر الطلبات والاستفسارات</p>
+      </div>
+      <div className="mt-3 flex flex-col gap-2">
+        {isLoading && <p className="text-center text-[11px] text-muted-foreground">جارٍ التحميل...</p>}
+        {!isLoading && data.length === 0 && <p className="text-center text-[11px] text-muted-foreground">لا توجد أنشطة بعد.</p>}
+        {data.map((a: any) => (
+          <div key={`${a.kind}-${a.id}`} className="flex items-start justify-between gap-2 rounded-xl bg-secondary/50 p-2">
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-bold text-primary">{a.student}</p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {a.kind === "viewing" ? "معاينة • " : "طلب سكن • "}{a.title}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-bold text-gold">{a.status}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UsersTab() {
+  const qc = useQueryClient();
+  const { data: users = [], isLoading } = useQuery({ queryKey: ["students-full"], queryFn: listStudentsFull });
+  const [q, setQ] = useState("");
+  const verifyMut = useMutation({
+    mutationFn: ({ id, v }: { id: string; v: boolean }) => setStudentVerified(id, v),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["students-full"] });
+      toast.success(v.v ? "تم توثيق المستخدم" : "تم إلغاء التوثيق");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
+  });
+  const filtered = useMemo(() => {
+    if (!q.trim()) return users;
+    const s = q.toLowerCase();
+    return users.filter((u: any) =>
+      (u.full_name ?? "").toLowerCase().includes(s) ||
+      (u.phone ?? "").toLowerCase().includes(s) ||
+      (u.university ?? "").toLowerCase().includes(s),
+    );
+  }, [users, q]);
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <label className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+        <Search size={14} className="text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="بحث بالاسم أو الهاتف أو الجامعة"
+          className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+        />
+      </label>
+      {isLoading && <p className="text-center text-xs text-muted-foreground">جارٍ التحميل...</p>}
+      {!isLoading && filtered.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا يوجد مستخدمون.</p>}
+      <div className="grid gap-3 md:grid-cols-2">
+        {filtered.map((u: any) => {
+          const pending = verifyMut.isPending && verifyMut.variables?.id === u.id;
+          return (
+            <div key={u.id} className="rounded-2xl bg-card p-4 shadow-soft">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
+                    <GraduationCap size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-primary">{u.full_name ?? "—"}</p>
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone size={10} />{u.phone ?? "—"}</p>
+                    {u.university && <p className="truncate text-[10px] text-muted-foreground">{u.university}</p>}
+                  </div>
+                </div>
+                {u.verified_renter && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                    <ShieldCheck size={10} /> موثّق
+                  </span>
+                )}
+              </div>
+              <button
+                disabled={pending}
+                onClick={() => verifyMut.mutate({ id: u.id, v: !u.verified_renter })}
+                className={`mt-3 flex w-full items-center justify-center gap-1 rounded-full py-2 text-[11px] font-bold disabled:opacity-60 ${
+                  u.verified_renter ? "bg-destructive/10 text-destructive" : "bg-primary text-primary-foreground"
+                }`}
+              >
+                {pending && <Loader2 size={11} className="animate-spin" />}
+                {u.verified_renter ? "إلغاء التوثيق" : "تفعيل التوثيق كمستأجر"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -258,6 +410,9 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     description: existing?.description ?? "",
     latitude: (existing?.latitude ?? null) as number | null,
     longitude: (existing?.longitude ?? null) as number | null,
+    verified: !!existing?.verified,
+    previously_rented: !!existing?.previouslyRented,
+    badge: (existing?.badge ?? "") as string,
   });
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -289,6 +444,7 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
       const payload: any = { ...form };
       if (payload.latitude == null) delete payload.latitude;
       if (payload.longitude == null) delete payload.longitude;
+      if (payload.badge === "") payload.badge = null;
       if (editId) {
         await updateProperty(editId, payload);
       } else {
@@ -329,6 +485,30 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
           <input type="number" placeholder="حمامات" value={form.baths} onChange={(e) => setForm({ ...form, baths: Number(e.target.value) })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
         </div>
         <textarea rows={2} placeholder="وصف" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs" />
+
+        {/* Trust & badges (admin only) */}
+        <div className="rounded-xl border border-border p-3">
+          <p className="mb-2 flex items-center gap-1 text-xs font-bold text-primary">
+            <ShieldCheck size={12} className="text-gold" /> التوثيق والشارات
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-xs">
+              <input type="checkbox" checked={form.verified} onChange={(e) => setForm({ ...form, verified: e.target.checked })} />
+              عقار موثّق
+            </label>
+            <label className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2 text-xs">
+              <input type="checkbox" checked={form.previously_rented} onChange={(e) => setForm({ ...form, previously_rented: e.target.checked })} />
+              تم تأجيره من قبل
+            </label>
+            <select value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} className="rounded-xl border border-border bg-card px-3 py-2 text-xs sm:col-span-2">
+              <option value="">بدون شارة</option>
+              <option value="الأكثر طلباً">الأكثر طلباً</option>
+              <option value="مميز">مميز</option>
+              <option value="جديد">جديد</option>
+              <option value="مرشّح لك">مرشّح لك</option>
+            </select>
+          </div>
+        </div>
 
         {/* Location picker */}
         <div className="rounded-xl border border-border p-3">

@@ -363,6 +363,7 @@ export type Database = {
           phone: string | null
           university: string | null
           updated_at: string
+          verified_renter: boolean
         }
         Insert: {
           created_at?: string
@@ -371,6 +372,7 @@ export type Database = {
           phone?: string | null
           university?: string | null
           updated_at?: string
+          verified_renter?: boolean
         }
         Update: {
           created_at?: string
@@ -379,6 +381,7 @@ export type Database = {
           phone?: string | null
           university?: string | null
           updated_at?: string
+          verified_renter?: boolean
         }
         Relationships: []
       }
