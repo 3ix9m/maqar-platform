@@ -128,6 +128,16 @@ export function RatingDialog({
         </div>
         <p className="mt-1 text-[11px] text-muted-foreground">تقييمك يساعد بقية الطلاب على اختيار أفضل سكن.</p>
 
+        {eligible === false && (
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
+            <Lock size={14} className="mt-0.5 shrink-0 text-destructive" />
+            <p className="text-[11px] leading-5 text-destructive">
+              التقييم متاح فقط للطلاب الذين استأجروا هذا العقار عبر مَقَر. سيتم تفعيل التقييم تلقائياً بعد توثيق الإيجار من الإدارة.
+            </p>
+          </div>
+        )}
+
+        <fieldset disabled={eligible === false} className="contents">
         <div className="mt-4 flex flex-col gap-3">
           {CATS.map((c) => (
             <div key={c.key} className="flex items-center justify-between rounded-2xl bg-secondary/50 px-3 py-2.5">
