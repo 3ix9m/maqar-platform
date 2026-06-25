@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock,
@@ -204,39 +204,30 @@ function ListingDetail() {
             <div>
               <p className="text-sm font-bold text-primary">كل التواصل عبر مَقَر</p>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                لحمايتك، يتم التواصل مع المالك حصرياً من خلال فريق مَقَر بعد طلب المعاينة.
+                لحمايتك، يتم التواصل مع المالك حصرياً من خلال فريق مَقَر عبر واتساب.
               </p>
             </div>
           </div>
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          {l.status === "متاحة" ? (
-            <Link
-              to="/request-viewing/$id"
-              params={{ id: l.id }}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
-            >
-              طلب معاينة
-            </Link>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-sm font-bold text-muted-foreground"
-            >
-              العقار غير متاح للحجز حالياً
-            </button>
-          )}
           <button
             type="button"
-            onClick={() => openWhatsApp(l.title)}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-sm font-bold text-white shadow-card"
+            disabled={l.status !== "متاحة"}
+            onClick={() =>
+              openWhatsApp(
+                l.title,
+                typeof window !== "undefined" ? `${window.location.origin}/listing/${l.id}` : undefined,
+              )
+            }
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-card disabled:bg-secondary disabled:text-muted-foreground"
           >
-            <MessageCircle size={16} /> تواصل عبر واتساب
+            <MessageCircle size={16} />
+            {l.status === "متاحة" ? "تواصل عبر واتساب للاستفسار" : "العقار غير متاح حالياً"}
           </button>
         </div>
       </div>
+
 
       {user && (
         <RatingDialog

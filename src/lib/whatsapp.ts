@@ -9,16 +9,17 @@ export const MAQAR_WHATSAPP_NUMBER = "201095346393";
  * requested by the product owner. The Arabic property title is appended
  * inside the brackets so the team can identify the property immediately.
  */
-export function buildWhatsAppUrl(propertyTitle: string, extra?: string) {
+export function buildWhatsAppUrl(propertyTitle: string, propertyUrl?: string, extra?: string) {
   const safeTitle = (propertyTitle || "مَقَر").trim();
-  const lines = [`Hello, I am interested in property: [${safeTitle}]`];
+  const lines = [`مرحباً، أنا مهتم بالعقار: [${safeTitle}]`];
+  if (propertyUrl) lines.push(`رابط العقار: ${propertyUrl}`);
   if (extra) lines.push(extra);
   const text = encodeURIComponent(lines.join("\n"));
   return `https://wa.me/${MAQAR_WHATSAPP_NUMBER}?text=${text}`;
 }
 
-export function openWhatsApp(propertyTitle: string, extra?: string) {
-  const url = buildWhatsAppUrl(propertyTitle, extra);
+export function openWhatsApp(propertyTitle: string, propertyUrl?: string, extra?: string) {
+  const url = buildWhatsAppUrl(propertyTitle, propertyUrl, extra);
   if (typeof window !== "undefined") {
     window.open(url, "_blank", "noopener,noreferrer");
   }
