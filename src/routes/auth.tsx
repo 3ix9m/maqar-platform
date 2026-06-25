@@ -26,6 +26,13 @@ function Auth() {
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: safeRedirect });
+    });
+  }, [safeRedirect, navigate]);
+
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
