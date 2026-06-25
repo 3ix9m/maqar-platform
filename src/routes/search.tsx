@@ -83,24 +83,7 @@ export const Route = createFileRoute("/search")({
   },
   component: SearchPage,
 });
-      meta: [
-        { title },
-        { name: "description", content: description },
-        // Noindex deep/long-tail query combos to keep the index clean.
-        ...(hasQuery ? [{ name: "robots", content: "noindex,follow" }] : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:url", content: canonical },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-      ],
-      links: [{ rel: "canonical", href: canonical }],
-    };
-  },
-  component: SearchPage,
-});
+
 
 const TYPES: ListingType[] = ["شقة كاملة", "أوضة مفروشة", "سرير"];
 
