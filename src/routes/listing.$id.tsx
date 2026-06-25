@@ -3,9 +3,11 @@ import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart,
 } from "lucide-react";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { StatusPill, VerifiedBadge } from "@/components/ListingCard";
+import { RatingDialog } from "@/components/RatingDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchListing, listFavorites, toggleFavorite } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
