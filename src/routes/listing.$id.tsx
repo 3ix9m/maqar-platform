@@ -292,20 +292,30 @@ function ListingDetail() {
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          <button
-            type="button"
-            disabled={l.status !== "متاحة"}
-            onClick={() =>
-              openWhatsApp(
-                l.title,
-                typeof window !== "undefined" ? `${window.location.origin}/listing/${l.id}` : undefined,
-              )
-            }
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-card disabled:bg-secondary disabled:text-muted-foreground"
-          >
-            <MessageCircle size={16} />
-            {l.status === "متاحة" ? "تواصل عبر واتساب للاستفسار" : "العقار غير متاح حالياً"}
-          </button>
+          {user ? (
+            <button
+              type="button"
+              disabled={l.status !== "متاحة"}
+              onClick={() =>
+                openWhatsApp(
+                  l.title,
+                  typeof window !== "undefined" ? `${window.location.origin}/listing/${l.id}` : undefined,
+                )
+              }
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-card disabled:bg-secondary disabled:text-muted-foreground"
+            >
+              <MessageCircle size={16} />
+              {l.status === "متاحة" ? "تواصل عبر واتساب للاستفسار" : "العقار غير متاح حالياً"}
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
+            >
+              <LogIn size={16} />
+              سجّل دخولك للتواصل عبر واتساب
+            </Link>
+          )}
         </div>
       </div>
 
