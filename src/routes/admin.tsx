@@ -444,6 +444,7 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
       const payload: any = { ...form };
       if (payload.latitude == null) delete payload.latitude;
       if (payload.longitude == null) delete payload.longitude;
+      if (payload.badge === "") payload.badge = null;
       if (editId) {
         await updateProperty(editId, payload);
       } else {
