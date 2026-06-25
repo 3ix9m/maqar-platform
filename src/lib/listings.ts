@@ -68,6 +68,8 @@ export interface PropertyRow {
   badge: string | null;
   cover_image: string | null;
   updated_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface PropertyImageRow {
