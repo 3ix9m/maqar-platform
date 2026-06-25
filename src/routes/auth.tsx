@@ -110,6 +110,21 @@ function Auth() {
             <GoogleIcon /> المتابعة باستخدام Google
           </button>
 
+          <button
+            type="button"
+            onClick={async () => {
+              setErr(null);
+              const result = await lovable.auth.signInWithOAuth("apple", { redirect_uri: window.location.origin });
+              if (result.error) { toast.error("تعذر الدخول بـ Apple"); return; }
+              if (result.redirected) return;
+              navigate({ to: "/" });
+            }}
+            className="flex items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90"
+          >
+            <AppleIcon /> المتابعة باستخدام Apple
+          </button>
+
+
           <p className="mt-1 text-center text-[10px] leading-5 text-muted-foreground">
             بإنشاء حساب فإنك توافق على{" "}
             <Link to="/terms" className="font-bold text-primary">الشروط</Link> و
