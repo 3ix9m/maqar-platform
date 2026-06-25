@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Menu, Bell, Heart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import logo from "@/assets/maqar-logo.png";
 
 interface Props {
@@ -9,7 +12,26 @@ interface Props {
   backTo?: string;
 }
 
+function useUnreadCount() {
+  const { user } = useAuth();
+  const { data = 0 } = useQuery({
+    queryKey: ["alert-matches-unread", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { count } = await (supabase as any)
+        .from("alert_matches")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", user!.id)
+        .eq("read", false);
+      return count ?? 0;
+    },
+    refetchInterval: 60000,
+  });
+  return data as number;
+}
+
 export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: Props) {
+  const unread = useUnreadCount();
   if (variant === "home") {
     return (
       <header className="flex items-center justify-between px-5 pb-2 pt-5">
@@ -19,10 +41,14 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
         <Link to="/" className="flex items-center">
           <img src={logo} alt="مَقَر" className="h-10 w-auto" />
         </Link>
-        <button aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
+        <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
           <Bell size={22} />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold" />
-        </button>
+          {unread > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[9px] font-bold text-primary">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </Link>
       </header>
     );
   }

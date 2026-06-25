@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Check, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/listings";
+const formatPrice = (n: number) => `${Number(n).toLocaleString("ar-EG")} ج/شهر`;
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
