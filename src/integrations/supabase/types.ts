@@ -158,6 +158,8 @@ export type Database = {
           distance: string | null
           id: string
           landlord_id: string
+          latitude: number | null
+          longitude: number | null
           previously_rented: boolean
           price: number
           rooms: number
@@ -177,6 +179,8 @@ export type Database = {
           distance?: string | null
           id?: string
           landlord_id: string
+          latitude?: number | null
+          longitude?: number | null
           previously_rented?: boolean
           price: number
           rooms?: number
@@ -196,6 +200,8 @@ export type Database = {
           distance?: string | null
           id?: string
           landlord_id?: string
+          latitude?: number | null
+          longitude?: number | null
           previously_rented?: boolean
           price?: number
           rooms?: number
