@@ -9,9 +9,10 @@ import {
   listPropertyImages, deletePropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
   listRentals, createRental, deleteRental, listStudents,
+  listStudentsFull, setStudentVerified, bulkUpdatePropertyStatus, listRecentActivity,
 } from "@/lib/api";
 import { statusTone, resolveImage, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon } from "lucide-react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
