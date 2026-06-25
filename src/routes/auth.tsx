@@ -110,6 +110,21 @@ function Auth() {
             <GoogleIcon /> المتابعة باستخدام Google
           </button>
 
+          <button
+            type="button"
+            onClick={async () => {
+              setErr(null);
+              const result = await lovable.auth.signInWithOAuth("apple", { redirect_uri: window.location.origin });
+              if (result.error) { toast.error("تعذر الدخول بـ Apple"); return; }
+              if (result.redirected) return;
+              navigate({ to: "/" });
+            }}
+            className="flex items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90"
+          >
+            <AppleIcon /> المتابعة باستخدام Apple
+          </button>
+
+
           <p className="mt-1 text-center text-[10px] leading-5 text-muted-foreground">
             بإنشاء حساب فإنك توافق على{" "}
             <Link to="/terms" className="font-bold text-primary">الشروط</Link> و
@@ -128,6 +143,14 @@ function GoogleIcon() {
       <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.3 29.1 4.5 24 4.5c-7.5 0-14 4.3-17.7 10.2z"/>
       <path fill="#4CAF50" d="M24 43.5c5 0 9.5-1.7 13.1-4.7l-6-5.1c-1.9 1.4-4.4 2.3-7.1 2.3-5.3 0-9.7-3-11.3-7.4l-6.5 5C9.9 39.1 16.4 43.5 24 43.5z"/>
       <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6 5.1c-.4.4 6.4-4.7 6.4-14.8 0-1.2-.1-2.3-.4-3.5z"/>
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.493-.124-1.09.402-2.24 1.07-2.97.749-.84 2.057-1.46 3.094-1.603zM20.5 17.27c-.6 1.38-.89 2-1.66 3.22-1.08 1.7-2.6 3.82-4.48 3.83-1.67.02-2.1-1.09-4.37-1.07-2.27.02-2.74 1.09-4.41 1.07C3.7 24.3 2.26 22.4 1.18 20.7-.83 17.58-1.04 13.92.2 11.97c.88-1.39 2.27-2.2 3.58-2.2 1.33 0 2.17.73 3.27.73 1.06 0 1.71-.73 3.25-.73 1.17 0 2.4.64 3.28 1.74-2.88 1.58-2.42 5.7.92 6.76z"/>
     </svg>
   );
 }
