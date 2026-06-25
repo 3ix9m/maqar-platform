@@ -61,10 +61,28 @@ export const Route = createFileRoute("/search")({
     max: s.max != null && !isNaN(Number(s.max)) ? Number(s.max) : undefined,
     view: s.view === "map" ? "map" : "list",
   }),
-  head: ({ search }) => {
-    const { title, description, canonical } = buildSeo(search as SearchParams);
-    const hasQuery = !!(search as SearchParams).q || !!(search as SearchParams).min || !!(search as SearchParams).max;
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => buildSeo(deps as SearchParams),
+  head: ({ loaderData }) => {
+    const { title, description, canonical, hasQuery } = (loaderData ?? buildSeo({})) as ReturnType<typeof buildSeo>;
     return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        ...(hasQuery ? [{ name: "robots", content: "noindex,follow" }] : []),
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
+  component: SearchPage,
+});
       meta: [
         { title },
         { name: "description", content: description },
