@@ -5,15 +5,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAdminStats, fetchListings, deleteProperty, updateProperty, createProperty,
   listLandlords, createLandlord, deleteLandlord, updateLandlordById,
-  listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
+  listAllViewingRequests, updateViewingStatus, uploadPropertyImages,
+  listPropertyImages, deletePropertyImage,
   listAllHousingRequests, updateHousingRequestStatus,
   listRentals, createRental, deleteRental, listStudents,
 } from "@/lib/api";
-import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound } from "lucide-react";
+import { statusTone, resolveImage, type ListingStatus } from "@/lib/listings";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { LocationPicker } from "@/components/LocationPicker";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "لوحة الإدارة | مَقَر" }] }),
