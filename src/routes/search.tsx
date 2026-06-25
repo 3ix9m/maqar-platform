@@ -22,35 +22,64 @@ type SearchParams = {
   min?: number;
   max?: number;
   view?: "list" | "map";
+  page?: number;
 };
 
 const SITE = "https://maqar.lovable.app";
+const PAGE_SIZE = 12;
 
-function buildSeo(search: SearchParams) {
+function buildSeo(search: SearchParams, totalResults?: number) {
   const parts: string[] = [];
   if (search.type) parts.push(search.type);
   if (search.q) parts.push(`في ${search.q}`);
   if (search.verified) parts.push("موثقة");
   if (search.min || search.max) {
-    const range = `${search.min ?? 0}–${search.max ?? "∞"} ج`;
-    parts.push(range);
+    parts.push(`${search.min ?? 0}–${search.max ?? "∞"} ج`);
   }
   const filterLabel = parts.length ? parts.join(" · ") : "كل العقارات";
-  const title = `${filterLabel} | بحث سكن طلابي — مَقَر`;
-  const description = parts.length
-    ? `نتائج البحث عن سكن طلابي: ${filterLabel}. قارن الأسعار، شاهد على الخريطة، وتواصل عبر واتساب.`
+  const page = Math.max(1, search.page ?? 1);
+  const pageSuffix = page > 1 ? ` — صفحة ${page}` : "";
+  const title = `${filterLabel}${pageSuffix} | بحث سكن طلابي — مَقَر`;
+  const baseDesc = parts.length
+    ? `نتائج البحث عن سكن طلابي: ${filterLabel}.`
     : "ابحث وفلتر العقارات الطلابية حسب السعر والنوع والتوثيق والمسافة عن جامعتك وشاهدها على الخريطة.";
+  const description = page > 1
+    ? `${baseDesc} الصفحة ${page} من النتائج.`
+    : `${baseDesc} قارن الأسعار، شاهد على الخريطة، وتواصل عبر واتساب.`;
 
-  // Canonical: include only stable, indexable filters (type, verified). 
+  // Canonical: include only stable, indexable filters + page.
   // Free-text q and price ranges stay out to avoid infinite duplicate URLs.
   const canonicalParams = new URLSearchParams();
   if (search.type) canonicalParams.set("type", search.type);
   if (search.verified) canonicalParams.set("verified", "1");
+  if (page > 1) canonicalParams.set("page", String(page));
   const qs = canonicalParams.toString();
   const canonical = qs ? `${SITE}/search?${qs}` : `${SITE}/search`;
 
-  const hasQuery = !!(search.q || search.min || search.max);
-  return { title, description, canonical, hasQuery };
+  // rel=prev/next links for paginated series
+  const seriesParams = (p: number) => {
+    const sp = new URLSearchParams();
+    if (search.type) sp.set("type", search.type);
+    if (search.verified) sp.set("verified", "1");
+    if (p > 1) sp.set("page", String(p));
+    const s = sp.toString();
+    return s ? `${SITE}/search?${s}` : `${SITE}/search`;
+  };
+  const totalPages = totalResults != null ? Math.max(1, Math.ceil(totalResults / PAGE_SIZE)) : undefined;
+  const prevUrl = page > 1 ? seriesParams(page - 1) : undefined;
+  const nextUrl = totalPages != null
+    ? (page < totalPages ? seriesParams(page + 1) : undefined)
+    : seriesParams(page + 1); // optimistic when total unknown (SSR/head)
+
+  // Duplicate-page rules:
+  // - Free-text/price filters → noindex (long-tail combos).
+  // - Pages beyond the first → noindex,follow (avoid thin duplicate content;
+  //   crawlers still follow links to discover listings).
+  const hasVolatileFilters = !!(search.q || search.min || search.max);
+  const isDeepPage = page > 1;
+  const noindex = hasVolatileFilters || isDeepPage;
+
+  return { title, description, canonical, noindex, page, prevUrl, nextUrl };
 }
 
 export const Route = createFileRoute("/search")({
@@ -61,16 +90,18 @@ export const Route = createFileRoute("/search")({
     min: s.min != null && !isNaN(Number(s.min)) ? Number(s.min) : undefined,
     max: s.max != null && !isNaN(Number(s.max)) ? Number(s.max) : undefined,
     view: s.view === "map" ? "map" : "list",
+    page: s.page != null && !isNaN(Number(s.page)) ? Math.max(1, Math.floor(Number(s.page))) : undefined,
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ deps }) => buildSeo(deps as SearchParams),
   head: ({ loaderData }) => {
-    const { title, description, canonical, hasQuery } = (loaderData ?? buildSeo({})) as ReturnType<typeof buildSeo>;
+    const seo = (loaderData ?? buildSeo({})) as ReturnType<typeof buildSeo>;
+    const { title, description, canonical, noindex, prevUrl, nextUrl } = seo;
     return {
       meta: [
         { title },
         { name: "description", content: description },
-        ...(hasQuery ? [{ name: "robots", content: "noindex,follow" }] : []),
+        ...(noindex ? [{ name: "robots", content: "noindex,follow" }] : []),
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:url", content: canonical },
@@ -79,7 +110,11 @@ export const Route = createFileRoute("/search")({
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
-      links: [{ rel: "canonical", href: canonical }],
+      links: [
+        { rel: "canonical", href: canonical },
+        ...(prevUrl ? [{ rel: "prev", href: prevUrl }] : []),
+        ...(nextUrl ? [{ rel: "next", href: nextUrl }] : []),
+      ],
     };
   },
   component: SearchPage,
