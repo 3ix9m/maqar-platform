@@ -23,28 +23,29 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "housing" | "rentals" | "landlords";
+type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const { isAdmin, loading } = useAuth();
 
-  if (loading) return <AppShell><TopBar variant="page" title="لوحة الإدارة" backTo="/profile" /><p className="px-5 text-center text-xs text-muted-foreground">جارٍ التحميل...</p></AppShell>;
+  if (loading) return <AppShell wide><TopBar variant="page" title="لوحة الإدارة" backTo="/profile" /><p className="px-5 text-center text-xs text-muted-foreground">جارٍ التحميل...</p></AppShell>;
   if (!isAdmin) return (
-    <AppShell>
+    <AppShell wide>
       <TopBar variant="page" title="لوحة الإدارة" backTo="/profile" />
       <p className="px-5 text-center text-xs text-muted-foreground">هذه الصفحة للإدارة فقط.</p>
     </AppShell>
   );
 
   return (
-    <AppShell>
-      <TopBar variant="page" title="لوحة الإدارة" backTo="/profile" />
-      <div className="px-5">
+    <AppShell wide>
+      <TopBar variant="page" title="لوحة التحكم — Super Admin" backTo="/profile" />
+      <div className="px-4 md:px-6">
         <div className="flex gap-1 overflow-x-auto rounded-full bg-secondary p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
+            { id: "users", label: "المستخدمون" },
             { id: "requests", label: "طلبات المعاينة" },
             { id: "housing", label: "طلبات السكن" },
             { id: "rentals", label: "الإيجارات الموثقة" },
@@ -64,6 +65,7 @@ function AdminDashboard() {
 
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
+        {tab === "users" && <UsersTab />}
         {tab === "requests" && <RequestsTab />}
         {tab === "housing" && <HousingTab />}
         {tab === "rentals" && <RentalsTab />}
