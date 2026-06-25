@@ -20,6 +20,7 @@ export const Route = createFileRoute("/favorites")({
 
 function Favorites() {
   const { user, loading } = useAuth();
+  const qc = useQueryClient();
   const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
@@ -27,6 +28,14 @@ function Favorites() {
     enabled: !!user,
   });
   const favs = listings.filter((l) => favIds.includes(l.id));
+  const favMut = useMutation({
+    mutationFn: ({ id, next }: { id: string; next: boolean }) => toggleFavorite(user!.id, id, next),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["favorites", user?.id] });
+      toast.success("تمت إزالته من المفضلة");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تحديث المفضلة"),
+  });
 
   if (!loading && !user) {
     return (
