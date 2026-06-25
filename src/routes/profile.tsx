@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2 } from "lucide-react";
+import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2, UserCog, FileText, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,10 +19,13 @@ export const Route = createFileRoute("/profile")({
 });
 
 const items = [
+  { to: "/account", label: "تعديل بياناتي", icon: UserCog, authOnly: true },
   { to: "/favorites", label: "المفضلة", icon: Heart },
   { to: "/compare", label: "مقارنة العقارات", icon: Scale },
   { to: "/notifications", label: "الإشعارات", icon: Bell },
   { to: "/help", label: "الأسئلة الشائعة", icon: BookOpen },
+  { to: "/privacy", label: "سياسة الخصوصية", icon: Lock },
+  { to: "/terms", label: "شروط الاستخدام", icon: FileText },
 ] as const;
 
 function Profile() {
@@ -82,7 +85,7 @@ function Profile() {
       </div>
 
       <ul className="mt-4 flex flex-col gap-2 px-5">
-        {items.map(({ to, label, icon: Icon }) => (
+        {items.filter((i) => !("authOnly" in i && i.authOnly) || !!user).map(({ to, label, icon: Icon }) => (
           <li key={label}>
             <Link to={to} className="flex items-center justify-between rounded-2xl bg-card px-4 py-3.5 shadow-soft">
               <span className="flex items-center gap-3">
