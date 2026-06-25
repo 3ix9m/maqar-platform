@@ -130,5 +130,7 @@ export function mapPropertyToListing(
     detailRating,
     description: p.description ?? "",
     landlordId: p.landlord_id,
+    latitude: p.latitude != null ? Number(p.latitude) : null,
+    longitude: p.longitude != null ? Number(p.longitude) : null,
   };
 }
