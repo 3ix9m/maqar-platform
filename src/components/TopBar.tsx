@@ -1,10 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, Menu, Bell, Heart, Home, Search, User, BookOpen, Building2, ShieldCheck, LogOut, Scale, Sun, Moon } from "lucide-react";
+import { ChevronRight, Menu, Bell, Heart, Home, Search, User, BookOpen, Building2, ShieldCheck, LogOut, Scale } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useTheme } from "@/hooks/use-theme";
 import logo from "@/assets/maqar-logo.png";
 
 interface Props {
