@@ -29,19 +29,19 @@ function Help() {
     <AppShell>
       <TopBar variant="page" title="الأسئلة الشائعة" />
       <div className="px-5">
-        <div className="flex items-center gap-3 rounded-2xl bg-primary p-4 text-primary-foreground shadow-card">
-          <HelpCircle className="text-gold" size={22} />
-          <p className="text-sm font-bold">إجابات سريعة عن أكثر الأسئلة شيوعاً</p>
+        <div className="flex items-center gap-3 rounded-2xl bg-primary p-5 text-primary-foreground shadow-card">
+          <HelpCircle className="text-gold" size={28} />
+          <p className="text-base font-bold">إجابات سريعة عن أكثر الأسئلة شيوعاً</p>
         </div>
 
-        <div className="mt-5 flex flex-col gap-2 pb-4">
+        <div className="mt-6 flex flex-col gap-3 pb-6">
           {faqs.map((f) => (
-            <details key={f.q} className="group rounded-2xl bg-card p-4 shadow-soft">
-              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-primary">
+            <details key={f.q} className="group rounded-2xl bg-card p-5 shadow-soft">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-bold text-primary">
                 {f.q}
-                <ChevronLeft size={16} className="text-muted-foreground transition group-open:-rotate-90" />
+                <ChevronLeft size={20} className="shrink-0 text-muted-foreground transition group-open:-rotate-90" />
               </summary>
-              <p className="mt-2 text-xs leading-7 text-muted-foreground">{f.a}</p>
+              <p className="mt-3 text-sm leading-8 text-muted-foreground">{f.a}</p>
             </details>
           ))}
         </div>
