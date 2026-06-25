@@ -202,6 +202,20 @@ function SearchPage() {
                 })}
               </div>
             </div>
+            {university && (
+              <div>
+                <p className="mb-1.5 text-xs font-bold text-primary">
+                  أقصى مسافة عن {university.name} (كم)
+                </p>
+                <input
+                  inputMode="numeric"
+                  value={maxDistance}
+                  onChange={(e) => setMaxDistance(e.target.value.replace(/[^\d.]/g, ""))}
+                  placeholder="مثلاً: 5"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none"
+                />
+              </div>
+            )}
             {activeFilterCount > 0 && (
               <button
                 type="button"
@@ -253,6 +267,11 @@ function SearchPage() {
           )}
         </div>
       </div>
+      <PriceAlertDialog
+        open={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        initial={{ area: q, type: types[0], maxPrice, verifiedOnly }}
+      />
     </AppShell>
   );
 }
