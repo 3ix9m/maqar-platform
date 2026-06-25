@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { Building2, Inbox, Star, ChevronLeft, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchListings } from "@/lib/api";
+import { fetchListings, listLandlordViewingRequests } from "@/lib/api";
 import { statusTone } from "@/lib/listings";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,11 +25,19 @@ function LandlordDashboard() {
   });
   const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const myProps = landlord ? listings.filter((l) => l.landlordId === landlord.id) : [];
+  const { data: requests = [] } = useQuery({
+    queryKey: ["landlord-requests", landlord?.id],
+    enabled: !!landlord?.id,
+    queryFn: () => listLandlordViewingRequests(landlord!.id),
+  });
+  const avgRating = myProps.length
+    ? (myProps.reduce((s, l) => s + (l.rating || 0), 0) / myProps.length).toFixed(1)
+    : "—";
 
   const stats = [
     { label: "عقاراتي", value: myProps.length, icon: Building2 },
-    { label: "طلبات معاينة", value: 0, icon: Inbox },
-    { label: "متوسط التقييم", value: "—", icon: Star },
+    { label: "طلبات معاينة", value: requests.length, icon: Inbox },
+    { label: "متوسط التقييم", value: avgRating, icon: Star },
   ];
 
   return (
