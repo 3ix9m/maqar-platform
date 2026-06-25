@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_matches: {
+        Row: {
+          alert_id: string
+          created_at: string
+          id: string
+          property_id: string
+          read: boolean
+          student_id: string
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          id?: string
+          property_id: string
+          read?: boolean
+          student_id: string
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          id?: string
+          property_id?: string
+          read?: boolean
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_matches_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "price_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_matches_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
