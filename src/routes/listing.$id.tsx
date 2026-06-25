@@ -199,6 +199,24 @@ function ListingDetail() {
           </div>
         )}
 
+        {l.latitude != null && l.longitude != null && (
+          <div className="mt-6">
+            <h2 className="flex items-center gap-1 text-sm font-bold text-primary">
+              <MapPin size={14} className="text-gold" /> الموقع على الخريطة
+            </h2>
+            <div className="mt-3">
+              <SingleLocationMap lat={Number(l.latitude)} lng={Number(l.longitude)} title={l.title} />
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${l.latitude},${l.longitude}`}
+                target="_blank" rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary underline"
+              >
+                <MapPin size={11} /> فتح الاتجاهات في خرائط جوجل
+              </a>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 rounded-2xl border border-gold/30 bg-gold/5 p-4">
           <div className="flex items-start gap-2">
             <ShieldCheck size={18} className="shrink-0 text-gold" />
