@@ -171,12 +171,13 @@ export function RatingDialog({
         {err && <p className="mt-2 text-xs text-destructive">{err}</p>}
 
         <button
-          disabled={loading}
+          disabled={loading || eligible === false}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
         >
           {loading && <Loader2 size={14} className="animate-spin" />}
-          إرسال التقييم
+          {eligible === false ? "غير متاح — لم تستأجر هذا العقار" : "إرسال التقييم"}
         </button>
+        </fieldset>
       </form>
     </div>
   );
