@@ -323,7 +323,8 @@ function RequestsTab() {
   const { data = [], isLoading } = useQuery({ queryKey: ["all-viewings"], queryFn: listAllViewingRequests });
   const updMut = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => updateViewingStatus(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-viewings"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["all-viewings"] }); toast.success("تم تحديث حالة الطلب"); },
+    onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
   });
   if (isLoading) return <p className="mt-6 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>;
   return (
