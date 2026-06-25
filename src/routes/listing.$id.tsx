@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { StatusPill, VerifiedBadge } from "@/components/ListingCard";
 import { RatingDialog } from "@/components/RatingDialog";
+import { SingleLocationMap } from "@/components/PropertyMap";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchListing, hasStudentRented, listFavorites, toggleFavorite } from "@/lib/api";
 import { openWhatsApp } from "@/lib/whatsapp";
