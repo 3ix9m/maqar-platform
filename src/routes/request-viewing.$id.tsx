@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
-import { Calendar, Clock, Loader2 } from "lucide-react";
+import { Calendar, Clock, Loader2, MessageCircle } from "lucide-react";
 import { fetchListing, createViewingRequest } from "@/lib/api";
+import { openWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/request-viewing/$id")({
@@ -48,8 +50,11 @@ function RequestViewing() {
         notes: form.notes || undefined,
       });
       setSubmitted(true);
+      toast.success("تم إرسال طلب المعاينة بنجاح");
     } catch (e: any) {
-      setErr(e.message ?? "حدث خطأ");
+      const msg = e.message ?? "حدث خطأ";
+      setErr(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -72,7 +77,16 @@ function RequestViewing() {
           <div className="mt-6 rounded-2xl border border-gold/30 bg-gold/5 p-5 text-center">
             <p className="text-base font-extrabold text-primary">تم إرسال طلب المعاينة</p>
             <p className="mt-2 text-xs leading-6 text-muted-foreground">سيتواصل فريق مَقَر معك قريباً لتأكيد الموعد وترتيب الزيارة.</p>
-            <Link to="/my-requests" className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">عرض طلباتي</Link>
+            <div className="mt-4 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => openWhatsApp(l.title, "أرسلت طلب معاينة عبر التطبيق.")}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-sm font-bold text-white"
+              >
+                <MessageCircle size={16} /> تواصل مع فريق مَقَر عبر واتساب
+              </button>
+              <Link to="/my-requests" className="inline-flex w-full items-center justify-center rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">عرض طلباتي</Link>
+            </div>
           </div>
         ) : (
           <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
