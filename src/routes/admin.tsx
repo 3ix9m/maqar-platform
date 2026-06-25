@@ -347,17 +347,76 @@ function LandlordsTab() {
         </form>
       )}
       {data.map((u: any) => (
-        <div key={u.id} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
-              <Users size={16} />
-            </span>
-            <div>
-              <p className="text-sm font-bold text-primary">{u.full_name}</p>
-              <p className="text-[11px] text-muted-foreground">{u.phone}</p>
-            </div>
+        <LandlordRow key={u.id} u={u} onDelete={() => { if (confirm("حذف؟")) delMut.mutate(u.id); }} />
+      ))}
+    </div>
+  );
+}
+
+function LandlordRow({ u, onDelete }: { u: any; onDelete: () => void }) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ full_name: u.full_name, phone: u.phone, email: u.email ?? "", notes: u.notes ?? "" });
+  const upd = useMutation({
+    mutationFn: () => updateLandlordById(u.id, form),
+    onSuccess: () => { setEditing(false); qc.invalidateQueries({ queryKey: ["landlords"] }); },
+  });
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
+            <Users size={16} />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-primary">{u.full_name}</p>
+            <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone size={10} />{u.phone}</p>
           </div>
-          <button onClick={() => { if (confirm("حذف؟")) delMut.mutate(u.id); }} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">حذف</button>
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => setEditing((e) => !e)} className="rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-primary">{editing ? "إغلاق" : "تعديل"}</button>
+          <button onClick={onDelete} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">حذف</button>
+        </div>
+      </div>
+      {editing && (
+        <form onSubmit={(e) => { e.preventDefault(); upd.mutate(); }} className="mt-3 flex flex-col gap-2">
+          <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="البريد" className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="ملاحظات" className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <button disabled={upd.isPending} className="rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground disabled:opacity-60">حفظ التعديلات</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function HousingTab() {
+  const qc = useQueryClient();
+  const { data = [], isLoading } = useQuery({ queryKey: ["all-housing"], queryFn: listAllHousingRequests });
+  const upd = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateHousingRequestStatus(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-housing"] }),
+  });
+  if (isLoading) return <p className="mt-6 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>;
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      {data.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد طلبات سكن.</p>}
+      {data.map((r: any) => (
+        <div key={r.id} className="rounded-2xl bg-card p-4 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-bold text-primary">{r.students?.full_name ?? "طالب"}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{r.type} • {r.area || "أي منطقة"} • {r.budget ? `${Number(r.budget).toLocaleString("ar-EG")} ج` : "—"}</p>
+              {r.notes && <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{r.notes}</p>}
+            </div>
+            <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{r.status}</span>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => upd.mutate({ id: r.id, status: "قيد المراجعة" })} className="flex-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">قيد المراجعة</button>
+            <button onClick={() => upd.mutate({ id: r.id, status: "تمت المطابقة" })} className="flex-1 rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground">مطابقة</button>
+            <button onClick={() => upd.mutate({ id: r.id, status: "مغلق" })} className="flex-1 rounded-full bg-destructive/10 py-2 text-xs font-bold text-destructive">إغلاق</button>
+          </div>
         </div>
       ))}
     </div>
