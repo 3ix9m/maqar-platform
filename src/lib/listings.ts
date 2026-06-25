@@ -32,6 +32,8 @@ export interface Listing {
   detailRating: Rating;
   description: string;
   landlordId?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export function statusTone(s: ListingStatus) {
@@ -66,6 +68,8 @@ export interface PropertyRow {
   badge: string | null;
   cover_image: string | null;
   updated_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface PropertyImageRow {
@@ -126,5 +130,7 @@ export function mapPropertyToListing(
     detailRating,
     description: p.description ?? "",
     landlordId: p.landlord_id,
+    latitude: p.latitude != null ? Number(p.latitude) : null,
+    longitude: p.longitude != null ? Number(p.longitude) : null,
   };
 }

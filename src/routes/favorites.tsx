@@ -3,9 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
 import { HeartOff } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchListings, listFavorites } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchListings, listFavorites, toggleFavorite } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/favorites")({
 
 function Favorites() {
   const { user, loading } = useAuth();
+  const qc = useQueryClient();
   const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
@@ -26,6 +28,14 @@ function Favorites() {
     enabled: !!user,
   });
   const favs = listings.filter((l) => favIds.includes(l.id));
+  const favMut = useMutation({
+    mutationFn: ({ id, next }: { id: string; next: boolean }) => toggleFavorite(user!.id, id, next),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["favorites", user?.id] });
+      toast.success("تمت إزالته من المفضلة");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تحديث المفضلة"),
+  });
 
   if (!loading && !user) {
     return (
@@ -56,7 +66,15 @@ function Favorites() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {favs.map((l) => <ListingCard key={l.id} listing={l} variant="row" />)}
+            {favs.map((l) => (
+              <ListingCard
+                key={l.id}
+                listing={l}
+                variant="row"
+                isFavorite
+                onToggleFavorite={(id, next) => favMut.mutate({ id, next })}
+              />
+            ))}
           </div>
         )}
       </div>

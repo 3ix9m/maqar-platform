@@ -22,7 +22,22 @@ export function VerifiedBadge() {
   );
 }
 
-export function ListingCard({ listing, variant = "grid" }: { listing: Listing; variant?: "grid" | "row" }) {
+export function ListingCard({
+  listing,
+  variant = "grid",
+  isFavorite = false,
+  onToggleFavorite,
+}: {
+  listing: Listing;
+  variant?: "grid" | "row";
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string, next: boolean) => void;
+}) {
+  const handleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleFavorite?.(listing.id, !isFavorite);
+  };
   if (variant === "row") {
     return (
       <Link to="/listing/$id" params={{ id: listing.id }} className="flex gap-3 rounded-2xl bg-card p-3 shadow-soft">
@@ -38,9 +53,16 @@ export function ListingCard({ listing, variant = "grid" }: { listing: Listing; v
           <div>
             <div className="flex items-start justify-between gap-2">
               <h3 className="truncate text-sm font-bold text-primary">{listing.title}</h3>
-              <button aria-label="مفضلة" className="shrink-0 text-muted-foreground">
-                <Heart size={18} />
-              </button>
+              {onToggleFavorite && (
+                <button
+                  type="button"
+                  onClick={handleFav}
+                  aria-label="مفضلة"
+                  className={`shrink-0 ${isFavorite ? "text-gold" : "text-muted-foreground"}`}
+                >
+                  <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                </button>
+              )}
             </div>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{listing.area}</p>
             <div className="mt-1 flex items-center gap-2">
@@ -70,9 +92,16 @@ export function ListingCard({ listing, variant = "grid" }: { listing: Listing; v
     <Link to="/listing/$id" params={{ id: listing.id }} className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-card">
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <img src={listing.image} alt={listing.title} className="h-full w-full object-cover" loading="lazy" />
-        <button aria-label="مفضلة" className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-card/90 text-primary">
-          <Heart size={16} />
-        </button>
+        {onToggleFavorite && (
+          <button
+            type="button"
+            onClick={handleFav}
+            aria-label="مفضلة"
+            className={`absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full ${isFavorite ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+          >
+            <Heart size={16} className={isFavorite ? "fill-current" : ""} />
+          </button>
+        )}
         {listing.badge && (
           <span className="absolute right-2 top-2 rounded-md bg-gold px-2 py-0.5 text-[10px] font-extrabold text-gold-foreground">
             {listing.badge}
