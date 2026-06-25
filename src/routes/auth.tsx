@@ -105,10 +105,12 @@ function Auth() {
             type="button"
             onClick={async () => {
               setErr(null);
-              const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+              const result = await lovable.auth.signInWithOAuth("google", {
+                redirect_uri: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect)}`,
+              });
               if (result.error) { toast.error("تعذر الدخول بـ Google"); return; }
               if (result.redirected) return;
-              navigate({ to: "/" });
+              goNext();
             }}
             className="flex items-center justify-center gap-2 rounded-full border border-border bg-card py-3.5 text-sm font-bold text-primary shadow-soft hover:bg-secondary"
           >
@@ -119,10 +121,12 @@ function Auth() {
             type="button"
             onClick={async () => {
               setErr(null);
-              const result = await lovable.auth.signInWithOAuth("apple", { redirect_uri: window.location.origin });
+              const result = await lovable.auth.signInWithOAuth("apple", {
+                redirect_uri: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeRedirect)}`,
+              });
               if (result.error) { toast.error("تعذر الدخول بـ Apple"); return; }
               if (result.redirected) return;
-              navigate({ to: "/" });
+              goNext();
             }}
             className="flex items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90"
           >
