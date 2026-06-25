@@ -150,8 +150,31 @@ function PropertiesTab() {
         />
       )}
 
-      {listings.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد عقارات بعد.</p>}
-      {listings.map((l) => {
+      <div className="flex flex-col gap-2 rounded-2xl bg-card p-3 shadow-soft">
+        <label className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+          <Search size={14} className="text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="بحث بالعنوان أو المنطقة"
+            className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+          />
+        </label>
+        <div className="flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {(["all", "متاحة", "محجوزة", "مؤجرة"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${statusFilter === s ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            >
+              {s === "all" ? "الكل" : s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد نتائج.</p>}
+      {filtered.map((l) => {
         const t = statusTone(l.status);
         return (
           <div key={l.id} className="rounded-2xl bg-card p-3 shadow-soft">
