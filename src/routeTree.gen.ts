@@ -13,8 +13,10 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LandlordRouteImport } from './routes/landlord'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
@@ -39,6 +41,11 @@ const LandlordRoute = LandlordRouteImport.update({
   path: '/landlord',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
@@ -47,6 +54,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -68,8 +80,10 @@ const ListingIdRoute = ListingIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/favorites': typeof FavoritesRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -79,8 +93,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/favorites': typeof FavoritesRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -91,8 +107,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/favorites': typeof FavoritesRoute
+  '/help': typeof HelpRoute
   '/landlord': typeof LandlordRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -104,8 +122,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
     | '/favorites'
+    | '/help'
     | '/landlord'
     | '/notifications'
     | '/profile'
@@ -115,8 +135,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
     | '/favorites'
+    | '/help'
     | '/landlord'
     | '/notifications'
     | '/profile'
@@ -126,8 +148,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/auth'
     | '/compare'
     | '/favorites'
+    | '/help'
     | '/landlord'
     | '/notifications'
     | '/profile'
@@ -138,8 +162,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
   FavoritesRoute: typeof FavoritesRoute
+  HelpRoute: typeof HelpRoute
   LandlordRoute: typeof LandlordRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
@@ -177,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandlordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/favorites': {
       id: '/favorites'
       path: '/favorites'
@@ -189,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -218,8 +258,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
   FavoritesRoute: FavoritesRoute,
+  HelpRoute: HelpRoute,
   LandlordRoute: LandlordRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
