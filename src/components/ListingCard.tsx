@@ -92,9 +92,16 @@ export function ListingCard({
     <Link to="/listing/$id" params={{ id: listing.id }} className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-card">
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <img src={listing.image} alt={listing.title} className="h-full w-full object-cover" loading="lazy" />
-        <button aria-label="مفضلة" className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-card/90 text-primary">
-          <Heart size={16} />
-        </button>
+        {onToggleFavorite && (
+          <button
+            type="button"
+            onClick={handleFav}
+            aria-label="مفضلة"
+            className={`absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full ${isFavorite ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+          >
+            <Heart size={16} className={isFavorite ? "fill-current" : ""} />
+          </button>
+        )}
         {listing.badge && (
           <span className="absolute right-2 top-2 rounded-md bg-gold px-2 py-0.5 text-[10px] font-extrabold text-gold-foreground">
             {listing.badge}
