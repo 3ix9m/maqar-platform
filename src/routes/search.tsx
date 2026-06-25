@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search as SearchIcon, SlidersHorizontal, ShieldCheck, MapIcon, List, X } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, ShieldCheck, MapIcon, List, X, Bell } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
 import { PropertyMap } from "@/components/PropertyMap";
+import { UniversityPicker } from "@/components/UniversityPicker";
+import { PriceAlertDialog } from "@/components/PriceAlertDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchListings, listFavorites, toggleFavorite } from "@/lib/api";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useUniversity } from "@/hooks/use-university";
+import { distanceKm } from "@/lib/universities";
 import { toast } from "sonner";
 import type { ListingType } from "@/lib/listings";
 
@@ -25,6 +29,7 @@ const TYPES: ListingType[] = ["شقة كاملة", "أوضة مفروشة", "س�
 
 function SearchPage() {
   const { user } = useAuth();
+  const { university } = useUniversity();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [view, setView] = useState<"list" | "map">("list");
@@ -33,6 +38,8 @@ function SearchPage() {
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [types, setTypes] = useState<ListingType[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<string>("");
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const { data: listings = [], isLoading } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
   const { data: favIds = [] } = useQuery({
