@@ -49,7 +49,8 @@ function buildSeo(search: SearchParams) {
   const qs = canonicalParams.toString();
   const canonical = qs ? `${SITE}/search?${qs}` : `${SITE}/search`;
 
-  return { title, description, canonical };
+  const hasQuery = !!(search.q || search.min || search.max);
+  return { title, description, canonical, hasQuery };
 }
 
 export const Route = createFileRoute("/search")({
