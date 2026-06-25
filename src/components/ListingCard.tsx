@@ -53,10 +53,16 @@ export function ListingCard({
           <div>
             <div className="flex items-start justify-between gap-2">
               <h3 className="truncate text-sm font-bold text-primary">{listing.title}</h3>
-              <button aria-label="مفضلة" className="shrink-0 text-muted-foreground">
-                <Heart size={18} />
-              </button>
-            </div>
+              {onToggleFavorite && (
+                <button
+                  type="button"
+                  onClick={handleFav}
+                  aria-label="مفضلة"
+                  className={`shrink-0 ${isFavorite ? "text-gold" : "text-muted-foreground"}`}
+                >
+                  <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                </button>
+              )}
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{listing.area}</p>
             <div className="mt-1 flex items-center gap-2">
               <StatusPill listing={listing} />
