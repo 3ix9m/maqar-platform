@@ -158,9 +158,6 @@ function SideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
 export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: Props) {
   const unread = useUnreadCount();
   const [open, setOpen] = useState(false);
-  const { theme, toggle } = useTheme();
-  const ThemeIcon = theme === "dark" ? Sun : Moon;
-  const themeLabel = theme === "dark" ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
 
   if (variant === "home") {
     return (
@@ -170,12 +167,9 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
             <Menu size={26} />
           </button>
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="مَقَر" className="h-16 w-auto" />
+            <img src={logo} alt="مَقَر" className="h-24 w-auto" />
           </Link>
           <div className="flex items-center gap-1">
-            <button onClick={toggle} aria-label={themeLabel} className="rounded-full p-2 text-primary">
-              <ThemeIcon size={22} />
-            </button>
             <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
               <Bell size={24} />
               {unread > 0 && (
@@ -198,9 +192,6 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
       </Link>
       <h1 className="text-base font-bold text-primary">{title}</h1>
       <div className="flex items-center">
-        <button onClick={toggle} aria-label={themeLabel} className="rounded-full p-2 text-primary">
-          <ThemeIcon size={20} />
-        </button>
         {showFavorite && (
           <button aria-label="المفضلة" className="rounded-full p-2 text-primary">
             <Heart size={22} />
