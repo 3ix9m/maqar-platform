@@ -40,7 +40,8 @@ function AdminDashboard() {
           {[
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
-            { id: "requests", label: "الطلبات" },
+            { id: "requests", label: "طلبات المعاينة" },
+            { id: "housing", label: "طلبات السكن" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
             <button
@@ -58,6 +59,7 @@ function AdminDashboard() {
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
         {tab === "requests" && <RequestsTab />}
+        {tab === "housing" && <HousingTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
     </AppShell>
