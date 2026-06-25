@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, MapPin, Star, ShieldCheck, Clock } from "lucide-react";
+import { Heart, MapPin, Star, ShieldCheck, Clock, Scale, GraduationCap } from "lucide-react";
 import type { Listing } from "@/lib/listings";
 import { statusTone } from "@/lib/listings";
+import { useCompare } from "@/hooks/use-compare";
+import { useUniversity } from "@/hooks/use-university";
+import { distanceKm, formatDistanceKm } from "@/lib/universities";
+import { toast } from "sonner";
 
 export function StatusPill({ listing, className = "" }: { listing: Listing; className?: string }) {
   const t = statusTone(listing.status);
@@ -22,6 +26,18 @@ export function VerifiedBadge() {
   );
 }
 
+function UniversityDistanceChip({ listing }: { listing: Listing }) {
+  const { university } = useUniversity();
+  if (!university || listing.latitude == null || listing.longitude == null) return null;
+  const km = distanceKm(university, { lat: listing.latitude, lng: listing.longitude });
+  return (
+    <span className="inline-flex items-center gap-0.5 rounded-full bg-gold/15 px-1.5 py-0.5 text-[10px] font-bold text-gold">
+      <GraduationCap size={10} />
+      {formatDistanceKm(km)}
+    </span>
+  );
+}
+
 export function ListingCard({
   listing,
   variant = "grid",
@@ -33,11 +49,26 @@ export function ListingCard({
   isFavorite?: boolean;
   onToggleFavorite?: (id: string, next: boolean) => void;
 }) {
+  const compare = useCompare();
+  const inCompare = compare.isInCompare(listing.id);
+
   const handleFav = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onToggleFavorite?.(listing.id, !isFavorite);
   };
+
+  const handleCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!inCompare && !compare.canAdd) {
+      toast.error(`الحد الأقصى ${compare.max} عقارات في المقارنة`);
+      return;
+    }
+    const added = compare.toggle(listing.id);
+    toast.success(added ? "تمت إضافته للمقارنة" : "تمت إزالته من المقارنة");
+  };
+
   if (variant === "row") {
     return (
       <Link to="/listing/$id" params={{ id: listing.id }} className="flex gap-3 rounded-2xl bg-card p-3 shadow-soft">
@@ -53,25 +84,36 @@ export function ListingCard({
           <div>
             <div className="flex items-start justify-between gap-2">
               <h3 className="truncate text-sm font-bold text-primary">{listing.title}</h3>
-              {onToggleFavorite && (
+              <div className="flex shrink-0 items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={handleFav}
-                  aria-label="مفضلة"
-                  className={`shrink-0 ${isFavorite ? "text-gold" : "text-muted-foreground"}`}
+                  onClick={handleCompare}
+                  aria-label="إضافة للمقارنة"
+                  className={inCompare ? "text-gold" : "text-muted-foreground"}
                 >
-                  <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                  <Scale size={16} className={inCompare ? "fill-current/10" : ""} />
                 </button>
-              )}
+                {onToggleFavorite && (
+                  <button
+                    type="button"
+                    onClick={handleFav}
+                    aria-label="مفضلة"
+                    className={isFavorite ? "text-gold" : "text-muted-foreground"}
+                  >
+                    <Heart size={18} className={isFavorite ? "fill-current" : ""} />
+                  </button>
+                )}
+              </div>
             </div>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{listing.area}</p>
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <StatusPill listing={listing} />
               {listing.verified && <ShieldCheck size={12} className="text-gold" aria-label="موثقة" />}
               <span className="flex items-center gap-0.5 text-[11px] font-semibold text-primary">
                 <Star size={11} className="fill-gold text-gold" />
                 {listing.rating.toFixed(1)}
               </span>
+              <UniversityDistanceChip listing={listing} />
             </div>
           </div>
           <div className="flex items-end justify-between">
@@ -92,16 +134,26 @@ export function ListingCard({
     <Link to="/listing/$id" params={{ id: listing.id }} className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-card">
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <img src={listing.image} alt={listing.title} className="h-full w-full object-cover" loading="lazy" />
-        {onToggleFavorite && (
+        <div className="absolute left-2 top-2 flex flex-col gap-1.5">
+          {onToggleFavorite && (
+            <button
+              type="button"
+              onClick={handleFav}
+              aria-label="مفضلة"
+              className={`grid h-8 w-8 place-items-center rounded-full ${isFavorite ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+            >
+              <Heart size={16} className={isFavorite ? "fill-current" : ""} />
+            </button>
+          )}
           <button
             type="button"
-            onClick={handleFav}
-            aria-label="مفضلة"
-            className={`absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full ${isFavorite ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+            onClick={handleCompare}
+            aria-label="مقارنة"
+            className={`grid h-8 w-8 place-items-center rounded-full ${inCompare ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
           >
-            <Heart size={16} className={isFavorite ? "fill-current" : ""} />
+            <Scale size={14} />
           </button>
-        )}
+        </div>
         {listing.badge && (
           <span className="absolute right-2 top-2 rounded-md bg-gold px-2 py-0.5 text-[10px] font-extrabold text-gold-foreground">
             {listing.badge}
@@ -134,6 +186,7 @@ export function ListingCard({
               موثقة
             </span>
           )}
+          <UniversityDistanceChip listing={listing} />
           <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
             <Clock size={10} />
             منذ {listing.updatedDaysAgo} يوم
