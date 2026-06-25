@@ -321,3 +321,66 @@ export async function listStudents() {
   if (error) throw error;
   return data ?? [];
 }
+
+// Full student rows for admin user-management
+export async function listStudentsFull() {
+  const { data, error } = await (supabase as any)
+    .from("students")
+    .select("id, full_name, phone, university, verified_renter, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function setStudentVerified(id: string, verified: boolean) {
+  const { error } = await (supabase as any)
+    .from("students")
+    .update({ verified_renter: verified })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+// Bulk update status for ALL properties (admin quick action)
+export async function bulkUpdatePropertyStatus(status: "متاحة" | "محجوزة" | "مؤجرة") {
+  const { error } = await supabase
+    .from("properties")
+    .update({ status } as any)
+    .not("id", "is", null);
+  if (error) throw error;
+}
+
+// Recent activity feed for admin overview
+export async function listRecentActivity(limit = 8) {
+  const [{ data: v }, { data: h }] = await Promise.all([
+    supabase
+      .from("viewing_requests")
+      .select("id, status, created_at, students(full_name), properties(title)")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("housing_requests")
+      .select("id, status, created_at, type, area, students(full_name)")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
+  const items = [
+    ...((v ?? []) as any[]).map((r) => ({
+      kind: "viewing" as const,
+      id: r.id,
+      created_at: r.created_at,
+      status: r.status,
+      title: r.properties?.title ?? "عقار",
+      student: r.students?.full_name ?? "طالب",
+    })),
+    ...((h ?? []) as any[]).map((r) => ({
+      kind: "housing" as const,
+      id: r.id,
+      created_at: r.created_at,
+      status: r.status,
+      title: `${r.type} • ${r.area || "أي منطقة"}`,
+      student: r.students?.full_name ?? "طالب",
+    })),
+  ].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  return items.slice(0, limit);
+}
+
