@@ -40,6 +40,7 @@ function ListingDetail() {
   const { data: l = initial } = useQuery({ queryKey: ["listing", initial.id], queryFn: () => fetchListing(initial.id), initialData: initial });
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [rateOpen, setRateOpen] = useState(false);
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
     queryFn: () => listFavorites(user!.id),
