@@ -3,9 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { ListingCard } from "@/components/ListingCard";
 import { HeartOff } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchListings, listFavorites } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchListings, listFavorites, toggleFavorite } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({
