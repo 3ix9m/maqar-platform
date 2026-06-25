@@ -185,6 +185,35 @@ export async function submitLandlordRating(input: {
   if (error) throw error;
 }
 
+export async function getMyPropertyRating(studentId: string, propertyId: string) {
+  const { data } = await supabase
+    .from("property_ratings")
+    .select("*")
+    .eq("student_id", studentId)
+    .eq("property_id", propertyId)
+    .maybeSingle();
+  return data;
+}
+
+export async function listAllHousingRequests() {
+  const { data, error } = await supabase
+    .from("housing_requests")
+    .select("*, students(full_name, phone)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateHousingRequestStatus(id: string, status: string) {
+  const { error } = await supabase.from("housing_requests").update({ status } as any).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateLandlordById(id: string, patch: Partial<{ full_name: string; phone: string; email: string; notes: string }>) {
+  const { error } = await supabase.from("landlords").update(patch as any).eq("id", id);
+  if (error) throw error;
+}
+
 // ───────────── Landlords (admin) ─────────────
 export async function listLandlords() {
   const { data, error } = await supabase.from("landlords").select("*").order("created_at", { ascending: false });

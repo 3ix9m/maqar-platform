@@ -3,9 +3,11 @@ import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart,
 } from "lucide-react";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { StatusPill, VerifiedBadge } from "@/components/ListingCard";
+import { RatingDialog } from "@/components/RatingDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchListing, listFavorites, toggleFavorite } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -38,6 +40,7 @@ function ListingDetail() {
   const { data: l = initial } = useQuery({ queryKey: ["listing", initial.id], queryFn: () => fetchListing(initial.id), initialData: initial });
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [rateOpen, setRateOpen] = useState(false);
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
     queryFn: () => listFavorites(user!.id),
@@ -145,7 +148,18 @@ function ListingDetail() {
         </div>
 
         <div className="mt-6">
-          <h2 className="text-sm font-bold text-primary">التقييمات</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-primary">التقييمات</h2>
+            {user && (
+              <button
+                type="button"
+                onClick={() => setRateOpen(true)}
+                className="rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold"
+              >
+                أضف تقييمك
+              </button>
+            )}
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {ratings.map((r) => (
               <div key={r.label} className="rounded-xl bg-card p-3 shadow-soft">
@@ -186,6 +200,17 @@ function ListingDetail() {
           طلب معاينة
         </Link>
       </div>
+
+      {user && (
+        <RatingDialog
+          open={rateOpen}
+          onClose={() => setRateOpen(false)}
+          studentId={user.id}
+          propertyId={l.id}
+          landlordId={l.landlordId}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["listing", l.id] })}
+        />
+      )}
     </AppShell>
   );
 }

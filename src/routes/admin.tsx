@@ -4,12 +4,13 @@ import { TopBar } from "@/components/TopBar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAdminStats, fetchListings, deleteProperty, updateProperty, createProperty,
-  listLandlords, createLandlord, deleteLandlord,
+  listLandlords, createLandlord, deleteLandlord, updateLandlordById,
   listAllViewingRequests, updateViewingStatus, uploadPropertyImage,
+  listAllHousingRequests, updateHousingRequestStatus,
 } from "@/lib/api";
 import { statusTone, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload } from "lucide-react";
-import { useState } from "react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "requests" | "landlords";
+type Tab = "overview" | "properties" | "requests" | "housing" | "landlords";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -39,7 +40,8 @@ function AdminDashboard() {
           {[
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
-            { id: "requests", label: "الطلبات" },
+            { id: "requests", label: "طلبات المعاينة" },
+            { id: "housing", label: "طلبات السكن" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
             <button
@@ -57,6 +59,7 @@ function AdminDashboard() {
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
         {tab === "requests" && <RequestsTab />}
+        {tab === "housing" && <HousingTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
     </AppShell>
@@ -65,13 +68,21 @@ function AdminDashboard() {
 
 function Overview() {
   const { data: s } = useQuery({ queryKey: ["admin-stats"], queryFn: fetchAdminStats });
+  const { data: listings = [] } = useQuery({ queryKey: ["listings"], queryFn: fetchListings });
+  const avg = useMemo(() => {
+    const rated = listings.filter((l) => l.ratingsCount > 0);
+    if (!rated.length) return "—";
+    return (rated.reduce((sum, l) => sum + l.rating, 0) / rated.length).toFixed(1);
+  }, [listings]);
+  const available = listings.filter((l) => l.status === "متاحة").length;
   const stats = [
     { label: "الطلاب", value: s?.students ?? 0, icon: Users },
     { label: "الملاك", value: s?.landlords ?? 0, icon: Building2 },
     { label: "العقارات", value: s?.properties ?? 0, icon: Building2 },
+    { label: "متاحة الآن", value: available, icon: CheckCircle2 },
     { label: "طلبات معاينة", value: s?.viewingRequests ?? 0, icon: Inbox },
-    { label: "طلبات سكن", value: s?.housingRequests ?? 0, icon: CheckCircle2 },
-    { label: "متوسط التقييم", value: "—", icon: Star },
+    { label: "طلبات سكن", value: s?.housingRequests ?? 0, icon: HomeIcon },
+    { label: "متوسط التقييم", value: avg, icon: Star },
   ];
   return (
     <>
@@ -92,7 +103,9 @@ function Overview() {
           <p className="text-sm font-bold">رؤى سوق السكن</p>
         </div>
         <p className="mt-2 text-xs leading-6 text-primary-foreground/80">
-          متوسط الإيجار ارتفع 8٪ هذا الفصل، والطلب الأعلى على الأوض المفروشة.
+          {listings.length > 0
+            ? `${available} عقار متاح حالياً، بمتوسط سعر ${Math.round(listings.reduce((a, l) => a + l.price, 0) / Math.max(1, listings.length)).toLocaleString("ar-EG")} ج/شهر.`
+            : "ابدأ بإضافة عقارات لرؤية الإحصائيات."}
         </p>
       </div>
     </>
@@ -105,6 +118,16 @@ function PropertiesTab() {
   const { data: landlords = [] } = useQuery({ queryKey: ["landlords"], queryFn: listLandlords });
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | ListingStatus>("all");
+
+  const filtered = useMemo(() =>
+    listings.filter((l) => {
+      if (statusFilter !== "all" && l.status !== statusFilter) return false;
+      if (!q.trim()) return true;
+      const s = q.toLowerCase();
+      return l.title.toLowerCase().includes(s) || l.area.toLowerCase().includes(s);
+    }), [listings, q, statusFilter]);
 
   const delMut = useMutation({
     mutationFn: deleteProperty,
@@ -127,8 +150,31 @@ function PropertiesTab() {
         />
       )}
 
-      {listings.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد عقارات بعد.</p>}
-      {listings.map((l) => {
+      <div className="flex flex-col gap-2 rounded-2xl bg-card p-3 shadow-soft">
+        <label className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+          <Search size={14} className="text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="بحث بالعنوان أو المنطقة"
+            className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+          />
+        </label>
+        <div className="flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {(["all", "متاحة", "محجوزة", "مؤجرة"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${statusFilter === s ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            >
+              {s === "all" ? "الكل" : s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد نتائج.</p>}
+      {filtered.map((l) => {
         const t = statusTone(l.status);
         return (
           <div key={l.id} className="rounded-2xl bg-card p-3 shadow-soft">
@@ -301,17 +347,76 @@ function LandlordsTab() {
         </form>
       )}
       {data.map((u: any) => (
-        <div key={u.id} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-soft">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
-              <Users size={16} />
-            </span>
-            <div>
-              <p className="text-sm font-bold text-primary">{u.full_name}</p>
-              <p className="text-[11px] text-muted-foreground">{u.phone}</p>
-            </div>
+        <LandlordRow key={u.id} u={u} onDelete={() => { if (confirm("حذف؟")) delMut.mutate(u.id); }} />
+      ))}
+    </div>
+  );
+}
+
+function LandlordRow({ u, onDelete }: { u: any; onDelete: () => void }) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ full_name: u.full_name, phone: u.phone, email: u.email ?? "", notes: u.notes ?? "" });
+  const upd = useMutation({
+    mutationFn: () => updateLandlordById(u.id, form),
+    onSuccess: () => { setEditing(false); qc.invalidateQueries({ queryKey: ["landlords"] }); },
+  });
+  return (
+    <div className="rounded-2xl bg-card p-4 shadow-soft">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-primary">
+            <Users size={16} />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-primary">{u.full_name}</p>
+            <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone size={10} />{u.phone}</p>
           </div>
-          <button onClick={() => { if (confirm("حذف؟")) delMut.mutate(u.id); }} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">حذف</button>
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => setEditing((e) => !e)} className="rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-primary">{editing ? "إغلاق" : "تعديل"}</button>
+          <button onClick={onDelete} className="rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive">حذف</button>
+        </div>
+      </div>
+      {editing && (
+        <form onSubmit={(e) => { e.preventDefault(); upd.mutate(); }} className="mt-3 flex flex-col gap-2">
+          <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="البريد" className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="ملاحظات" className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <button disabled={upd.isPending} className="rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground disabled:opacity-60">حفظ التعديلات</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function HousingTab() {
+  const qc = useQueryClient();
+  const { data = [], isLoading } = useQuery({ queryKey: ["all-housing"], queryFn: listAllHousingRequests });
+  const upd = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateHousingRequestStatus(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["all-housing"] }),
+  });
+  if (isLoading) return <p className="mt-6 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>;
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      {data.length === 0 && <p className="rounded-2xl bg-card p-4 text-center text-xs text-muted-foreground shadow-soft">لا توجد طلبات سكن.</p>}
+      {data.map((r: any) => (
+        <div key={r.id} className="rounded-2xl bg-card p-4 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-bold text-primary">{r.students?.full_name ?? "طالب"}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{r.type} • {r.area || "أي منطقة"} • {r.budget ? `${Number(r.budget).toLocaleString("ar-EG")} ج` : "—"}</p>
+              {r.notes && <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{r.notes}</p>}
+            </div>
+            <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">{r.status}</span>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => upd.mutate({ id: r.id, status: "قيد المراجعة" })} className="flex-1 rounded-full bg-secondary py-2 text-xs font-bold text-primary">قيد المراجعة</button>
+            <button onClick={() => upd.mutate({ id: r.id, status: "تمت المطابقة" })} className="flex-1 rounded-full bg-primary py-2 text-xs font-bold text-primary-foreground">مطابقة</button>
+            <button onClick={() => upd.mutate({ id: r.id, status: "مغلق" })} className="flex-1 rounded-full bg-destructive/10 py-2 text-xs font-bold text-destructive">إغلاق</button>
+          </div>
         </div>
       ))}
     </div>
