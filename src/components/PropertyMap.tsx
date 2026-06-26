@@ -292,9 +292,10 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
     );
   }
   return (
-    <MapShell loading={loading} height="h-72">
+    <MapShell loading={loading} height="h-80">
       <div ref={mapEl} className="h-full w-full" />
-      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[10px] font-bold text-primary shadow-soft backdrop-blur">
+      <MapSearchBox mapRef={mapRef} markerRef={searchMarkerRef} />
+      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[10px] font-bold text-primary shadow-soft backdrop-blur">
         <MapPin size={11} className="text-gold" /> {points.length} عقار
       </span>
     </MapShell>
