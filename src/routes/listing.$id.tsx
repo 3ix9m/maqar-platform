@@ -109,6 +109,18 @@ function ListingDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [rateOpen, setRateOpen] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const touchX = useRef<number | null>(null);
+  const gallery = l!.gallery?.length ? l!.gallery : [l!.image];
+  const current = gallery[Math.min(idx, gallery.length - 1)] || l!.image;
+  const go = (d: number) => setIdx((i) => (i + d + gallery.length) % gallery.length);
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    if (Math.abs(dx) > 40) go(dx > 0 ? -1 : 1); // RTL: swipe right => previous
+    touchX.current = null;
+  };
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
     queryFn: () => listFavorites(user!.id),
