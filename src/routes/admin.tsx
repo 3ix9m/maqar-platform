@@ -565,7 +565,7 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
             <div className="grid grid-cols-3 gap-2">
               {existingImages.map((img: any) => (
                 <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg">
-                  <img src={resolveImage(img.url)} alt="" className="h-full w-full object-cover" />
+                  <img src={(signedMap as any)[img.url] || ""} alt="" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => { if (confirm("حذف الصورة؟")) delImgMut.mutate({ id: img.id, url: img.url }); }}
