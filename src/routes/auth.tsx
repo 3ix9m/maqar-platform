@@ -87,11 +87,20 @@ function Auth() {
           )}
 
           {mode === "register" && (
-            <div className="flex items-start gap-2 rounded-2xl border border-gold/30 bg-gold/5 p-3">
-              <ShieldCheck size={16} className="shrink-0 text-gold" />
-              <p className="text-[11px] leading-6 text-muted-foreground">
-                التسجيل متاح للطلاب فقط. حسابات الملاك يتم إنشاؤها بواسطة إدارة مَقَر.
-              </p>
+            <div className="flex flex-col gap-2 rounded-2xl border border-gold/30 bg-gold/5 p-3">
+              <div className="flex items-start gap-2">
+                <ShieldCheck size={16} className="shrink-0 text-gold" />
+                <p className="text-[11px] leading-6 text-muted-foreground">
+                  التسجيل متاح للطلاب فقط. حسابات الملاك يتم إنشاؤها بواسطة إدارة مَقَر.
+                </p>
+              </div>
+              <a
+                href="https://wa.me/201095346393?text=مرحباً،%20أرغب%20في%20إنشاء%20حساب%20مالك%20على%20مَقَر"
+                target="_blank" rel="noreferrer"
+                className="flex items-center justify-center gap-2 rounded-full bg-[#25D366] py-2.5 text-[11px] font-bold text-white shadow-soft hover:opacity-90"
+              >
+                هل أنت مالك؟ تواصل معنا عبر واتساب
+              </a>
             </div>
           )}
 

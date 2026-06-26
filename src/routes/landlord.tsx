@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
-import { Building2, Inbox, Star, ChevronLeft, Eye } from "lucide-react";
+import { Building2, Inbox, Star, ChevronLeft, Eye, Plus, ShieldCheck, MessageCircle, Image as ImageIcon, MapPin, BadgeCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchListings, listLandlordViewingRequests } from "@/lib/api";
 import { statusTone } from "@/lib/listings";
@@ -60,6 +60,24 @@ function LandlordDashboard() {
               <p className="text-[10px] text-muted-foreground">{label}</p>
             </div>
           ))}
+        </div>
+
+        <Link to="/landlord/new" className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gold py-3 text-sm font-bold text-primary shadow-card">
+          <Plus size={16} /> إضافة عقار جديد
+        </Link>
+
+        <div className="mt-5 rounded-2xl bg-card p-4 shadow-soft">
+          <p className="flex items-center gap-2 text-sm font-bold text-primary">
+            <ShieldCheck size={16} className="text-gold" /> صلاحياتك كمالك
+          </p>
+          <ul className="mt-3 flex flex-col gap-2 text-[12px] leading-6 text-muted-foreground">
+            <li className="flex items-start gap-2"><Plus size={14} className="mt-0.5 shrink-0 text-gold" /> إضافة عقاراتك مع الموقع والتفاصيل والسعر.</li>
+            <li className="flex items-start gap-2"><ImageIcon size={14} className="mt-0.5 shrink-0 text-gold" /> رفع وحذف صور عقاراتك في أي وقت.</li>
+            <li className="flex items-start gap-2"><MapPin size={14} className="mt-0.5 shrink-0 text-gold" /> تحديث حالة العقار (متاحة / محجوزة / مؤجرة).</li>
+            <li className="flex items-start gap-2"><Inbox size={14} className="mt-0.5 shrink-0 text-gold" /> استقبال طلبات المعاينة من فريق مَقَر فقط (بيانات الطلاب محمية).</li>
+            <li className="flex items-start gap-2"><MessageCircle size={14} className="mt-0.5 shrink-0 text-gold" /> التواصل مع الطلاب عبر واتساب بعد ترشيح مَقَر.</li>
+            <li className="flex items-start gap-2"><BadgeCheck size={14} className="mt-0.5 shrink-0 text-gold" /> التوثيق وشارات "الأكثر طلباً" تُمنح من الإدارة بعد المراجعة.</li>
+          </ul>
         </div>
 
         <h2 className="mt-6 text-sm font-bold text-primary">عقاراتي</h2>
