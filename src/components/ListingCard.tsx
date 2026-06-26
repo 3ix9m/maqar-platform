@@ -1,10 +1,11 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, MapPin, Star, ShieldCheck, Clock, Scale, GraduationCap } from "lucide-react";
 import type { Listing } from "@/lib/listings";
 import { statusTone } from "@/lib/listings";
 import { useCompare } from "@/hooks/use-compare";
 import { useUniversity } from "@/hooks/use-university";
 import { distanceKm, formatDistanceKm } from "@/lib/universities";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export function StatusPill({ listing, className = "" }: { listing: Listing; className?: string }) {
@@ -51,16 +52,25 @@ export function ListingCard({
 }) {
   const compare = useCompare();
   const inCompare = compare.isInCompare(listing.id);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const requireAuth = (next: string) => {
+    toast.error("سجّل دخولك أولاً");
+    navigate({ to: "/auth", search: { redirect: next } });
+  };
 
   const handleFav = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) return requireAuth(`/listing/${listing.id}`);
     onToggleFavorite?.(listing.id, !isFavorite);
   };
 
   const handleCompare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) return requireAuth(`/listing/${listing.id}`);
     if (!inCompare && !compare.canAdd) {
       toast.error(`الحد الأقصى ${compare.max} عقارات في المقارنة`);
       return;
