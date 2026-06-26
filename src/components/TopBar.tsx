@@ -162,12 +162,12 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
   if (variant === "home") {
     return (
       <>
-        <header className="flex items-center justify-between px-4 pb-2 pt-3">
+        <header className="flex items-center justify-between px-4 pb-2 pt-2">
           <button onClick={() => setOpen(true)} aria-label="القائمة" className="rounded-full p-2 text-primary">
-            <Menu size={26} />
+            <Menu size={24} />
           </button>
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="مَقَر" className="h-48 w-auto" />
+            <img src={logo} alt="مَقَر" className="h-28 w-auto" />
           </Link>
           <div className="flex items-center gap-1">
             <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
