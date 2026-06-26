@@ -1,9 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Heart, User } from "lucide-react";
+import { Home, Heart, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "الرئيسية", icon: Home },
-  { to: "/search", label: "بحث", icon: Search },
   { to: "/favorites", label: "المفضلة", icon: Heart },
   { to: "/profile", label: "حسابي", icon: User },
 ] as const;
