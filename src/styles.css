@@ -40,7 +40,7 @@
 :root {
   --radius: 1rem;
   /* Brand: deep navy #0D223D, gold #D4A017, off-white #FDFDFD, soft gray #F5F6FA */
-  --background: oklch(0.985 0.002 270);
+  --background: oklch(0.955 0.004 270);
   --foreground: oklch(0.22 0.05 260);
 
   --card: oklch(1 0 0);
