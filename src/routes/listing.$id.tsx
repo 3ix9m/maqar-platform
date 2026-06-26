@@ -2,8 +2,9 @@ import { createFileRoute, notFound, Link, useNavigate } from "@tanstack/react-ro
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
@@ -108,6 +109,18 @@ function ListingDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [rateOpen, setRateOpen] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const touchX = useRef<number | null>(null);
+  const gallery = l!.gallery?.length ? l!.gallery : [l!.image];
+  const current = gallery[Math.min(idx, gallery.length - 1)] || l!.image;
+  const go = (d: number) => setIdx((i) => (i + d + gallery.length) % gallery.length);
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    if (Math.abs(dx) > 40) go(dx > 0 ? -1 : 1); // RTL: swipe right => previous
+    touchX.current = null;
+  };
   const { data: favIds = [] } = useQuery({
     queryKey: ["favorites", user?.id],
     queryFn: () => listFavorites(user!.id),
@@ -143,8 +156,8 @@ function ListingDetail() {
       <TopBar variant="page" title="تفاصيل العقار" />
 
       <div className="px-5 pb-4">
-        <div className="relative overflow-hidden rounded-2xl shadow-card">
-          <img src={l.image} alt={l.title} className="aspect-[4/3] w-full object-cover" />
+        <div className="relative overflow-hidden rounded-2xl shadow-card" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+          <img key={current} src={current} alt={l.title} className="aspect-[4/3] w-full animate-fade-in object-cover" />
           {user && (
             <button
               onClick={() => favMut.mutate()}
@@ -154,15 +167,47 @@ function ListingDetail() {
               <Heart size={16} className={isFav ? "fill-current" : ""} />
             </button>
           )}
-          <span className="absolute bottom-3 right-3 rounded-full bg-primary/85 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">1/{l.gallery.length}</span>
+          {gallery.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                aria-label="السابق"
+                className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-primary shadow-soft transition hover:scale-110"
+              >
+                <ChevronRight size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => go(1)}
+                aria-label="التالي"
+                className="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-primary shadow-soft transition hover:scale-110"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+                {gallery.map((_g: string, i: number) => (
+                  <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-gold" : "w-1.5 bg-card/80"}`} />
+                ))}
+              </div>
+            </>
+          )}
+          <span className="absolute bottom-3 right-3 rounded-full bg-primary/85 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">{idx + 1}/{gallery.length}</span>
           {l.badge && (
             <span className="absolute right-3 top-3 rounded-md bg-gold px-2 py-1 text-[10px] font-extrabold text-gold-foreground">{l.badge}</span>
           )}
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {l.gallery.map((g: string, i: number) => (
-            <img key={i} src={g} alt="" className="h-14 w-20 shrink-0 rounded-lg object-cover" loading="lazy" />
+          {gallery.map((g: string, i: number) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIdx(i)}
+              className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition ${i === idx ? "border-gold" : "border-transparent opacity-70 hover:opacity-100"}`}
+            >
+              <img src={g} alt="" className="h-full w-full object-cover" loading="lazy" />
+            </button>
           ))}
         </div>
 
