@@ -1,10 +1,11 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, MapPin, Star, ShieldCheck, Clock, Scale, GraduationCap } from "lucide-react";
 import type { Listing } from "@/lib/listings";
 import { statusTone } from "@/lib/listings";
 import { useCompare } from "@/hooks/use-compare";
 import { useUniversity } from "@/hooks/use-university";
 import { distanceKm, formatDistanceKm } from "@/lib/universities";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export function StatusPill({ listing, className = "" }: { listing: Listing; className?: string }) {
