@@ -167,7 +167,7 @@ export function TopBar({ variant = "home", title, showFavorite, backTo = "/" }: 
             <Menu size={26} />
           </button>
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="مَقَر" className="h-24 w-auto" />
+            <img src={logo} alt="مَقَر" className="h-36 w-auto" />
           </Link>
           <div className="flex items-center gap-1">
             <Link to="/notifications" aria-label="الإشعارات" className="relative rounded-full p-2 text-primary">
