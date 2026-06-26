@@ -26,6 +26,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as LandlordNewRouteImport } from './routes/landlord.new'
 import { Route as LandlordIdRouteImport } from './routes/landlord.$id'
 
 const TermsRoute = TermsRouteImport.update({
@@ -113,6 +114,11 @@ const ListingIdRoute = ListingIdRouteImport.update({
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LandlordNewRoute = LandlordNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LandlordRoute,
+} as any)
 const LandlordIdRoute = LandlordIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/landlord/$id': typeof LandlordIdRoute
+  '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/landlord/$id': typeof LandlordIdRoute
+  '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRoutesById {
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/landlord/$id': typeof LandlordIdRoute
+  '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
 }
 export interface FileRouteTypes {
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/landlord/$id'
+    | '/landlord/new'
     | '/listing/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/landlord/$id'
+    | '/landlord/new'
     | '/listing/$id'
   id:
     | '__root__'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/landlord/$id'
+    | '/landlord/new'
     | '/listing/$id'
   fileRoutesById: FileRoutesById
 }
@@ -384,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/landlord/new': {
+      id: '/landlord/new'
+      path: '/new'
+      fullPath: '/landlord/new'
+      preLoaderRoute: typeof LandlordNewRouteImport
+      parentRoute: typeof LandlordRoute
+    }
     '/landlord/$id': {
       id: '/landlord/$id'
       path: '/$id'
@@ -396,10 +415,12 @@ declare module '@tanstack/react-router' {
 
 interface LandlordRouteChildren {
   LandlordIdRoute: typeof LandlordIdRoute
+  LandlordNewRoute: typeof LandlordNewRoute
 }
 
 const LandlordRouteChildren: LandlordRouteChildren = {
   LandlordIdRoute: LandlordIdRoute,
+  LandlordNewRoute: LandlordNewRoute,
 }
 
 const LandlordRouteWithChildren = LandlordRoute._addFileChildren(
