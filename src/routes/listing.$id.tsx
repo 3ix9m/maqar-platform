@@ -105,6 +105,7 @@ function ListingDetail() {
   const initial = Route.useLoaderData();
   const { data: l = initial } = useQuery({ queryKey: ["listing", initial.id], queryFn: () => fetchListing(initial.id), initialData: initial });
   const { user } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [rateOpen, setRateOpen] = useState(false);
   const { data: favIds = [] } = useQuery({
