@@ -11,7 +11,7 @@ import {
   listRentals, createRental, deleteRental, listStudents,
   listStudentsFull, setStudentVerified, bulkUpdatePropertyStatus, listRecentActivity,
 } from "@/lib/api";
-import { statusTone, resolveImage, type ListingStatus } from "@/lib/listings";
+import { statusTone, signStoragePaths, type ListingStatus } from "@/lib/listings";
 import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -420,6 +420,12 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     enabled: !!editId,
   });
 
+  const { data: signedMap = {} } = useQuery({
+    queryKey: ["property-images-signed", editId, existingImages.map((i: any) => i.url).join(",")],
+    queryFn: () => signStoragePaths(existingImages.map((i: any) => i.url)),
+    enabled: existingImages.length > 0,
+  });
+
   const delImgMut = useMutation({
     mutationFn: ({ id, url }: { id: string; url: string }) => deletePropertyImage(id, url),
     onSuccess: () => {
@@ -559,7 +565,7 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
             <div className="grid grid-cols-3 gap-2">
               {existingImages.map((img: any) => (
                 <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg">
-                  <img src={resolveImage(img.url)} alt="" className="h-full w-full object-cover" />
+                  <img src={(signedMap as any)[img.url] || ""} alt="" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => { if (confirm("حذف الصورة؟")) delImgMut.mutate({ id: img.id, url: img.url }); }}

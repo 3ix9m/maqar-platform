@@ -43,12 +43,42 @@ export function statusTone(s: ListingStatus) {
 }
 
 const FALLBACK = apt1;
+const SIGN_TTL = 60 * 60; // 1h
+
+export function isStoragePath(s: string | null | undefined): boolean {
+  if (!s) return false;
+  return !(s.startsWith("http") || s.startsWith("/") || s.startsWith("data:"));
+}
 
 export function resolveImage(pathOrUrl: string | null | undefined): string {
   if (!pathOrUrl) return FALLBACK;
-  if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("/") || pathOrUrl.startsWith("data:")) return pathOrUrl;
-  const { data } = supabase.storage.from("properties").getPublicUrl(pathOrUrl);
-  return data.publicUrl || FALLBACK;
+  if (!isStoragePath(pathOrUrl)) return pathOrUrl;
+  // Storage path — will be signed later by signListingImages.
+  return pathOrUrl;
+}
+
+export async function signStoragePaths(paths: string[]): Promise<Record<string, string>> {
+  const unique = Array.from(new Set(paths.filter((p) => p && isStoragePath(p))));
+  if (!unique.length) return {};
+  const { data, error } = await supabase.storage.from("properties").createSignedUrls(unique, SIGN_TTL);
+  if (error || !data) return {};
+  const map: Record<string, string> = {};
+  data.forEach((d: any) => { if (d?.path && d?.signedUrl) map[d.path] = d.signedUrl; });
+  return map;
+}
+
+export async function signListingImages<T extends { image: string; gallery: string[] }>(listing: T): Promise<T> {
+  const paths = [listing.image, ...listing.gallery];
+  const map = await signStoragePaths(paths);
+  const sign = (p: string) => (isStoragePath(p) ? map[p] || FALLBACK : p);
+  return { ...listing, image: sign(listing.image), gallery: listing.gallery.map(sign) };
+}
+
+export async function signListingsImages<T extends { image: string; gallery: string[] }>(listings: T[]): Promise<T[]> {
+  const all = listings.flatMap((l) => [l.image, ...l.gallery]);
+  const map = await signStoragePaths(all);
+  const sign = (p: string) => (isStoragePath(p) ? map[p] || FALLBACK : p);
+  return listings.map((l) => ({ ...l, image: sign(l.image), gallery: l.gallery.map(sign) }));
 }
 
 export interface PropertyRow {

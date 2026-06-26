@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { mapPropertyToListing, type Listing, type PropertyImageRow, type PropertyRatingRow, type PropertyRow } from "@/lib/listings";
+import { mapPropertyToListing, signListingImages, signListingsImages, type Listing, type PropertyImageRow, type PropertyRatingRow, type PropertyRow } from "@/lib/listings";
 
 // ───────────── Properties ─────────────
 export async function fetchListings(): Promise<Listing[]> {
@@ -21,9 +21,10 @@ export async function fetchListings(): Promise<Listing[]> {
     arr.push(r);
     rg.set(r.property_id, arr);
   });
-  return (props ?? []).map((p: any) =>
+  const mapped = (props ?? []).map((p: any) =>
     mapPropertyToListing(p as PropertyRow, ig.get(p.id) ?? [], rg.get(p.id) ?? []),
   );
+  return await signListingsImages(mapped);
 }
 
 export async function fetchListing(id: string): Promise<Listing | null> {
@@ -33,7 +34,8 @@ export async function fetchListing(id: string): Promise<Listing | null> {
     supabase.from("property_ratings").select("property_id, cleanliness, internet, furniture, quietness").eq("property_id", id),
   ]);
   if (!p) return null;
-  return mapPropertyToListing(p as PropertyRow, (imgs as PropertyImageRow[]) ?? [], (ratings as PropertyRatingRow[]) ?? []);
+  const mapped = mapPropertyToListing(p as PropertyRow, (imgs as PropertyImageRow[]) ?? [], (ratings as PropertyRatingRow[]) ?? []);
+  return await signListingImages(mapped);
 }
 
 export async function createProperty(input: Partial<PropertyRow> & { landlord_id: string; title: string; type: string; price: number }) {
