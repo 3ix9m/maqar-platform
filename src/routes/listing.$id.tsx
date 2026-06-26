@@ -4,8 +4,7 @@ import {
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
-import { useRef } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
