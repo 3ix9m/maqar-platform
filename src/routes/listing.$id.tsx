@@ -186,7 +186,7 @@ function ListingDetail() {
                 <ChevronLeft size={18} />
               </button>
               <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-                {gallery.map((_, i) => (
+                {gallery.map((_g: string, i: number) => (
                   <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-gold" : "w-1.5 bg-card/80"}`} />
                 ))}
               </div>
