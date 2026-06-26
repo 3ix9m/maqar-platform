@@ -82,10 +82,133 @@ function MapShell({
   );
 }
 
+function MapSearchBox({ mapRef, markerRef }: { mapRef: React.MutableRefObject<any>; markerRef: React.MutableRefObject<any> }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [items, setItems] = useState<Array<{ id: string; main: string; secondary: string }>>([]);
+  const tokenRef = useRef<any>(null);
+  const tRef = useRef<any>(null);
+
+  async function ensureToken() {
+    if (tokenRef.current) return tokenRef.current;
+    const places: any = await window.google.maps.importLibrary("places");
+    tokenRef.current = new places.AutocompleteSessionToken();
+    return tokenRef.current;
+  }
+
+  function onChange(v: string) {
+    setQ(v);
+    setOpen(true);
+    if (tRef.current) clearTimeout(tRef.current);
+    if (!v.trim()) { setItems([]); return; }
+    tRef.current = setTimeout(async () => {
+      try {
+        setBusy(true);
+        const places: any = await window.google.maps.importLibrary("places");
+        const sessionToken = await ensureToken();
+        const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: v,
+          sessionToken,
+          includedRegionCodes: ["eg"],
+          language: "ar",
+        });
+        const mapped = (suggestions || [])
+          .map((s: any) => s.placePrediction)
+          .filter(Boolean)
+          .slice(0, 6)
+          .map((p: any) => ({
+            id: p.placeId,
+            main: p.mainText?.toString?.() || p.text?.toString?.() || "",
+            secondary: p.secondaryText?.toString?.() || "",
+          }));
+        setItems(mapped);
+      } catch {
+        setItems([]);
+      } finally {
+        setBusy(false);
+      }
+    }, 220);
+  }
+
+  async function pick(it: { id: string; main: string; secondary: string }) {
+    try {
+      setBusy(true);
+      const places: any = await window.google.maps.importLibrary("places");
+      const place = new places.Place({ id: it.id });
+      await place.fetchFields({ fields: ["location", "viewport", "displayName"] });
+      const loc = place.location;
+      if (!loc || !mapRef.current) return;
+      const g = window.google.maps;
+      if (place.viewport) mapRef.current.fitBounds(place.viewport);
+      else { mapRef.current.setCenter(loc); mapRef.current.setZoom(15); }
+      if (markerRef.current) markerRef.current.setMap(null);
+      const svg = `<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="44" height="56" viewBox="0 0 44 56"><path d="M22 2c10.5 0 19 8.3 19 18.6 0 13.6-19 33.4-19 33.4S3 34.2 3 20.6C3 10.3 11.5 2 22 2z" fill="#D4A017" stroke="#fff" stroke-width="2.5"/><circle cx="22" cy="20" r="6" fill="#fff"/></svg>`;
+      markerRef.current = new g.Marker({
+        position: loc,
+        map: mapRef.current,
+        title: it.main,
+        icon: { url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`, scaledSize: new g.Size(40, 50), anchor: new g.Point(20, 50) },
+        animation: g.Animation.DROP,
+      });
+      setQ(it.main);
+      setOpen(false);
+      tokenRef.current = null; // end session
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function clear() {
+    setQ(""); setItems([]); setOpen(false);
+    if (markerRef.current) { markerRef.current.setMap(null); markerRef.current = null; }
+  }
+
+  return (
+    <div className="absolute inset-x-3 top-3 z-10" dir="rtl">
+      <div className="flex items-center gap-2 rounded-full bg-card/95 px-3 py-2 shadow-card ring-1 ring-border backdrop-blur">
+        {busy ? <Loader2 size={15} className="animate-spin text-gold" /> : <Search size={15} className="text-gold" />}
+        <input
+          value={q}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => q && setOpen(true)}
+          placeholder="ابحث عن عنوان أو منطقة أو جامعة…"
+          className="flex-1 bg-transparent text-[12px] font-medium text-primary outline-none placeholder:text-muted-foreground"
+        />
+        {q && (
+          <button type="button" onClick={clear} aria-label="مسح" className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-primary">
+            <X size={13} />
+          </button>
+        )}
+      </div>
+      {open && items.length > 0 && (
+        <ul className="mt-2 max-h-64 overflow-auto rounded-2xl bg-card shadow-card ring-1 ring-border">
+          {items.map((it) => (
+            <li key={it.id}>
+              <button
+                type="button"
+                onClick={() => pick(it)}
+                className="flex w-full items-start gap-2 border-b border-border/60 px-3 py-2 text-right last:border-b-0 hover:bg-secondary/60"
+              >
+                <MapPin size={13} className="mt-0.5 shrink-0 text-gold" />
+                <span className="flex-1">
+                  <span className="block text-[12px] font-bold text-primary">{it.main}</span>
+                  {it.secondary && <span className="block text-[10px] text-muted-foreground">{it.secondary}</span>}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function PropertyMap({ listings }: { listings: Listing[] }) {
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const searchMarkerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
 
   const points = listings.filter((l) => l.latitude != null && l.longitude != null);
