@@ -2,7 +2,9 @@ import { createFileRoute, notFound, Link, useNavigate } from "@tanstack/react-ro
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
+import { useRef } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
