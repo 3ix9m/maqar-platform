@@ -156,15 +156,16 @@ function ListingDetail() {
       <TopBar variant="page" title="تفاصيل العقار" />
 
       <div className="px-5 pb-4">
-        <div className="relative overflow-hidden rounded-2xl shadow-card" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <img key={current} src={current} alt={l.title} className="aspect-[4/3] w-full animate-fade-in object-cover" />
+        <div className="group relative overflow-hidden rounded-3xl shadow-card ring-1 ring-border/60" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+          <img key={current} src={current} alt={l.title} className="aspect-[4/3] w-full animate-fade-in object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
           {user && (
             <button
               onClick={() => favMut.mutate()}
               aria-label="مفضلة"
-              className={`absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full ${isFav ? "bg-gold text-gold-foreground" : "bg-card/90 text-primary"}`}
+              className={`absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-full shadow-soft backdrop-blur transition active:scale-95 ${isFav ? "bg-gold text-gold-foreground" : "bg-card/85 text-primary hover:bg-card"}`}
             >
-              <Heart size={16} className={isFav ? "fill-current" : ""} />
+              <Heart size={17} className={isFav ? "fill-current" : ""} />
             </button>
           )}
           {gallery.length > 1 && (
@@ -173,43 +174,55 @@ function ListingDetail() {
                 type="button"
                 onClick={() => go(-1)}
                 aria-label="السابق"
-                className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-primary shadow-soft transition hover:scale-110"
+                className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-card/85 text-primary shadow-soft backdrop-blur transition hover:scale-105 hover:bg-card active:scale-95"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={20} />
               </button>
               <button
                 type="button"
                 onClick={() => go(1)}
                 aria-label="التالي"
-                className="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-primary shadow-soft transition hover:scale-110"
+                className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-card/85 text-primary shadow-soft backdrop-blur transition hover:scale-105 hover:bg-card active:scale-95"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={20} />
               </button>
-              <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+              <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1.5 backdrop-blur">
                 {gallery.map((_g: string, i: number) => (
-                  <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-gold" : "w-1.5 bg-card/80"}`} />
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setIdx(i)}
+                    aria-label={`صورة ${i + 1}`}
+                    className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 bg-gold" : "w-1.5 bg-white/60 hover:bg-white"}`}
+                  />
                 ))}
               </div>
             </>
           )}
-          <span className="absolute bottom-3 right-3 rounded-full bg-primary/85 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">{idx + 1}/{gallery.length}</span>
+          <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur">
+            {idx + 1} / {gallery.length}
+          </span>
           {l.badge && (
-            <span className="absolute right-3 top-3 rounded-md bg-gold px-2 py-1 text-[10px] font-extrabold text-gold-foreground">{l.badge}</span>
+            <span className="absolute right-3 top-3 rounded-lg bg-gold px-2.5 py-1 text-[10px] font-extrabold text-gold-foreground shadow-soft">{l.badge}</span>
           )}
         </div>
 
-        <div className="mt-3 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {gallery.map((g: string, i: number) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIdx(i)}
-              className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition ${i === idx ? "border-gold" : "border-transparent opacity-70 hover:opacity-100"}`}
-            >
-              <img src={g} alt="" className="h-full w-full object-cover" loading="lazy" />
-            </button>
-          ))}
-        </div>
+        {gallery.length > 1 && (
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {gallery.map((g: string, i: number) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIdx(i)}
+                aria-label={`عرض الصورة ${i + 1}`}
+                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl transition-all duration-200 ${i === idx ? "scale-[1.03] ring-2 ring-gold ring-offset-2 ring-offset-background" : "opacity-60 ring-1 ring-border hover:opacity-100"}`}
+              >
+                <img src={g} alt="" className="h-full w-full object-cover" loading="lazy" />
+                {i === idx && <span className="absolute inset-0 bg-gold/10" />}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="mt-5">
           <div className="flex items-start justify-between gap-2">
