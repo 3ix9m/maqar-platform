@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Maximize2, Navigation } from "lucide-react";
+import { MapPin, Maximize2, Navigation, Search, X, Loader2 } from "lucide-react";
 import type { Listing } from "@/lib/listings";
 import { hasMapsKey, loadGoogleMaps } from "@/lib/google-maps";
 
