@@ -25,7 +25,7 @@ export function loadGoogleMaps(): Promise<void> {
     window.__maqarMapInit = () => resolve();
     const s = document.createElement("script");
     s.async = true;
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&loading=async&callback=__maqarMapInit${MAPS_CHANNEL ? `&channel=${MAPS_CHANNEL}` : ""}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&loading=async&libraries=places&callback=__maqarMapInit${MAPS_CHANNEL ? `&channel=${MAPS_CHANNEL}` : ""}`;
     s.onerror = () => reject(new Error("failed to load google maps"));
     document.head.appendChild(s);
   });
