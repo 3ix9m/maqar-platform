@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound, Link, useNavigate } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchListing, hasStudentRented, listFavorites, toggleFavorite } from "@/lib/api";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/listing/$id")({
   loader: async ({ params }) => {
@@ -104,6 +105,7 @@ function ListingDetail() {
   const initial = Route.useLoaderData();
   const { data: l = initial } = useQuery({ queryKey: ["listing", initial.id], queryFn: () => fetchListing(initial.id), initialData: initial });
   const { user } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [rateOpen, setRateOpen] = useState(false);
   const { data: favIds = [] } = useQuery({
@@ -292,33 +294,33 @@ function ListingDetail() {
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          {user ? (
-            <button
-              type="button"
-              disabled={l.status !== "متاحة"}
-              onClick={() =>
-                openWhatsApp(
-                  l.title,
-                  typeof window !== "undefined" ? `${window.location.origin}/listing/${l.id}` : undefined,
-                )
+          <button
+            type="button"
+            disabled={l.status !== "متاحة"}
+            onClick={async () => {
+              const { data } = await supabase.auth.getUser();
+              if (!data.user) {
+                toast.error("سجّل دخولك أولاً للتواصل عبر واتساب");
+                navigate({ to: "/auth", search: { redirect: `/listing/${l.id}` } });
+                return;
               }
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-card disabled:bg-secondary disabled:text-muted-foreground"
-            >
-              <MessageCircle size={16} />
-              {l.status === "متاحة" ? "تواصل عبر واتساب للاستفسار" : "العقار غير متاح حالياً"}
-            </button>
-          ) : (
-            <Link
-              to="/auth"
-              search={{ redirect: `/listing/${l.id}` }}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-card"
-            >
-              <LogIn size={16} />
-              سجّل دخولك للتواصل عبر واتساب
-            </Link>
-          )}
+              openWhatsApp(
+                l.title,
+                typeof window !== "undefined" ? `${window.location.origin}/listing/${l.id}` : undefined,
+              );
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-card disabled:bg-secondary disabled:text-muted-foreground"
+          >
+            {user ? <MessageCircle size={16} /> : <LogIn size={16} />}
+            {l.status !== "متاحة"
+              ? "العقار غير متاح حالياً"
+              : user
+              ? "تواصل عبر واتساب للاستفسار"
+              : "سجّل دخولك للتواصل عبر واتساب"}
+          </button>
         </div>
       </div>
+
 
 
       {user && (
