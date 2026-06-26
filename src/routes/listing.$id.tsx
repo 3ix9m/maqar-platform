@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound, Link, useNavigate } from "@tanstack/react-router";
 import {
   Wifi, Snowflake, ChefHat, Flame, MapPin, BedDouble, Bath, Zap,
   ShieldCheck, Star, Clock, Building2, Heart, MessageCircle, Lock, LogIn,
@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchListing, hasStudentRented, listFavorites, toggleFavorite } from "@/lib/api";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/listing/$id")({
   loader: async ({ params }) => {
