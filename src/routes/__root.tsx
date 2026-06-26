@@ -104,7 +104,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
         <ScriptOnce>
-          {`(function(){try{var k='maqar-theme';var s=localStorage.getItem(k);var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var t=(s==='dark'||s==='light')?s:(m?'dark':'light');var r=document.documentElement;if(t==='dark')r.classList.add('dark');r.style.colorScheme=t;}catch(e){}})();`}
+          {`(function(){try{var r=document.documentElement;r.classList.remove('dark');r.style.colorScheme='light';localStorage.removeItem('maqar-theme');}catch(e){}})();`}
         </ScriptOnce>
       </head>
       <body>
