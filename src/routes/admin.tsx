@@ -638,31 +638,64 @@ function LandlordsTab() {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ["landlords"], queryFn: listLandlords });
   const [show, setShow] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", email: "", notes: "" });
+  const emptyForm = { full_name: "", phone: "", email: "", password: "", notes: "" };
+  const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState<string | null>(null);
-  const createMut = useMutation({
-    mutationFn: () => createLandlord(form),
-    onSuccess: () => { setShow(false); setForm({ full_name: "", phone: "", email: "", notes: "" }); qc.invalidateQueries({ queryKey: ["landlords"] }); },
-    onError: (e: any) => setErr(e.message),
+  const [okMsg, setOkMsg] = useState<string | null>(null);
+
+  const createAccountMut = useMutation({
+    mutationFn: async () => {
+      const { createLandlordAccount } = await import("@/lib/admin-landlord.functions");
+      return createLandlordAccount({ data: {
+        email: form.email.trim(),
+        password: form.password,
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim(),
+        notes: form.notes || undefined,
+      }});
+    },
+    onSuccess: () => {
+      setOkMsg(`تم إنشاء حساب المالك بنجاح. يمكنه الآن تسجيل الدخول بـ ${form.email}`);
+      setErr(null);
+      setForm(emptyForm);
+      qc.invalidateQueries({ queryKey: ["landlords"] });
+      toast.success("تم إنشاء حساب المالك");
+    },
+    onError: (e: any) => { setErr(e?.message ?? "فشل الإنشاء"); setOkMsg(null); },
   });
   const delMut = useMutation({
     mutationFn: deleteLandlord,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["landlords"] }),
   });
 
+  function generatePassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#";
+    let p = "";
+    for (let i = 0; i < 12; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    setForm((f) => ({ ...f, password: p }));
+  }
+
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <button onClick={() => setShow((s) => !s)} className="flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">
-        <UserPlus size={16} /> {show ? "إغلاق" : "إنشاء حساب مالك"}
+      <button onClick={() => { setShow((s) => !s); setErr(null); setOkMsg(null); }} className="flex items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground">
+        <UserPlus size={16} /> {show ? "إغلاق" : "إنشاء حساب مالك بكلمة مرور"}
       </button>
       {show && (
-        <form onSubmit={(e) => { e.preventDefault(); createMut.mutate(); }} className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-soft">
+        <form onSubmit={(e) => { e.preventDefault(); setErr(null); setOkMsg(null); createAccountMut.mutate(); }} className="flex flex-col gap-2 rounded-2xl bg-card p-4 shadow-soft">
+          <p className="text-[11px] text-muted-foreground">ينشئ هذا النموذج حساب دخول حقيقي للمالك. سيتمكن من تسجيل الدخول من صفحة /auth بالبريد وكلمة المرور.</p>
           <input required placeholder="الاسم الكامل" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
           <input required placeholder="رقم الهاتف" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
-          <input placeholder="البريد (اختياري)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
-          <textarea rows={2} placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <input required type="email" placeholder="البريد الإلكتروني للدخول" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
+          <div className="flex gap-2">
+            <input required minLength={8} type="text" placeholder="كلمة المرور (8 أحرف فأكثر)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="flex-1 rounded-xl border border-border px-3 py-2 text-xs font-mono" />
+            <button type="button" onClick={generatePassword} className="rounded-xl bg-secondary px-3 text-[11px] font-bold text-primary">توليد</button>
+          </div>
+          <textarea rows={2} placeholder="ملاحظات (اختياري)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-xl border border-border px-3 py-2 text-xs" />
           {err && <p className="text-xs text-destructive">{err}</p>}
-          <button className="rounded-full bg-gold py-2 text-xs font-bold text-gold-foreground">حفظ المالك</button>
+          {okMsg && <p className="text-xs text-emerald-600">{okMsg}</p>}
+          <button disabled={createAccountMut.isPending} className="flex items-center justify-center gap-2 rounded-full bg-gold py-2 text-xs font-bold text-gold-foreground disabled:opacity-60">
+            <KeyRound size={14} /> {createAccountMut.isPending ? "جارٍ الإنشاء..." : "إنشاء الحساب"}
+          </button>
         </form>
       )}
       {data.map((u: any) => (
@@ -671,6 +704,7 @@ function LandlordsTab() {
     </div>
   );
 }
+
 
 function LandlordRow({ u, onDelete }: { u: any; onDelete: () => void }) {
   const qc = useQueryClient();
