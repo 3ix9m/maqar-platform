@@ -420,6 +420,12 @@ function PropertyForm({ landlords, editId, existing, onClose, onSaved }: any) {
     enabled: !!editId,
   });
 
+  const { data: signedMap = {} } = useQuery({
+    queryKey: ["property-images-signed", editId, existingImages.map((i: any) => i.url).join(",")],
+    queryFn: () => signStoragePaths(existingImages.map((i: any) => i.url)),
+    enabled: existingImages.length > 0,
+  });
+
   const delImgMut = useMutation({
     mutationFn: ({ id, url }: { id: string; url: string }) => deletePropertyImage(id, url),
     onSuccess: () => {
