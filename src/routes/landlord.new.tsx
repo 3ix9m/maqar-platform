@@ -35,7 +35,7 @@ const TYPE_OPTIONS: { value: PropType; title: string; desc: string; Icon: any }[
   { value: "سرير", title: "سرير", desc: "سرير في غرفة مشتركة", Icon: UserIcon },
 ];
 
-const POPULAR_AREAS = ["المنصورة", "طلخا", "ميت خميس", "جيهان", "الجامعة الجديدة"];
+const POPULAR_AREAS = ["سوهاج", "الكوامل", "الكوامل البحرية", "ميريت", "أخميم", "جامعة سوهاج"];
 
 function AddListing() {
   const navigate = useNavigate();
