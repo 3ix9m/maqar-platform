@@ -46,6 +46,7 @@ function AdminDashboard() {
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
             { id: "users", label: "المستخدمون" },
+            { id: "landlord_requests", label: "طلبات الملاك" },
             { id: "housing", label: "طلبات السكن" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
@@ -64,6 +65,7 @@ function AdminDashboard() {
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
         {tab === "users" && <UsersTab />}
+        {tab === "landlord_requests" && <LandlordRequestsTab />}
         {tab === "housing" && <HousingTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
