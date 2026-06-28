@@ -16,7 +16,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as LandlordRouteImport } from './routes/landlord'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FavoritesRouteImport } from './routes/favorites'
@@ -25,6 +24,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LandlordIndexRouteImport } from './routes/landlord.index'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 import { Route as LandlordNewRouteImport } from './routes/landlord.new'
 import { Route as LandlordIdRouteImport } from './routes/landlord.$id'
@@ -62,11 +62,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LandlordRoute = LandlordRouteImport.update({
-  id: '/landlord',
-  path: '/landlord',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -109,20 +104,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LandlordIndexRoute = LandlordIndexRouteImport.update({
+  id: '/landlord/',
+  path: '/landlord/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListingIdRoute = ListingIdRouteImport.update({
   id: '/listing/$id',
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandlordNewRoute = LandlordNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LandlordRoute,
+  id: '/landlord/new',
+  path: '/landlord/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LandlordIdRoute = LandlordIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => LandlordRoute,
+  id: '/landlord/$id',
+  path: '/landlord/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -134,7 +134,6 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
-  '/landlord': typeof LandlordRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -145,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/landlord/$id': typeof LandlordIdRoute
   '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
+  '/landlord/': typeof LandlordIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -155,7 +155,6 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
-  '/landlord': typeof LandlordRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -166,6 +165,7 @@ export interface FileRoutesByTo {
   '/landlord/$id': typeof LandlordIdRoute
   '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
+  '/landlord': typeof LandlordIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -177,7 +177,6 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/help': typeof HelpRoute
-  '/landlord': typeof LandlordRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -188,6 +187,7 @@ export interface FileRoutesById {
   '/landlord/$id': typeof LandlordIdRoute
   '/landlord/new': typeof LandlordNewRoute
   '/listing/$id': typeof ListingIdRoute
+  '/landlord/': typeof LandlordIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,7 +200,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/forgot-password'
     | '/help'
-    | '/landlord'
     | '/notifications'
     | '/privacy'
     | '/profile'
@@ -211,6 +210,7 @@ export interface FileRouteTypes {
     | '/landlord/$id'
     | '/landlord/new'
     | '/listing/$id'
+    | '/landlord/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,7 +221,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/forgot-password'
     | '/help'
-    | '/landlord'
     | '/notifications'
     | '/privacy'
     | '/profile'
@@ -232,6 +231,7 @@ export interface FileRouteTypes {
     | '/landlord/$id'
     | '/landlord/new'
     | '/listing/$id'
+    | '/landlord'
   id:
     | '__root__'
     | '/'
@@ -242,7 +242,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/forgot-password'
     | '/help'
-    | '/landlord'
     | '/notifications'
     | '/privacy'
     | '/profile'
@@ -253,6 +252,7 @@ export interface FileRouteTypes {
     | '/landlord/$id'
     | '/landlord/new'
     | '/listing/$id'
+    | '/landlord/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -264,7 +264,6 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HelpRoute: typeof HelpRoute
-  LandlordRoute: typeof LandlordRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
@@ -272,7 +271,10 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  LandlordIdRoute: typeof LandlordIdRoute
+  LandlordNewRoute: typeof LandlordNewRoute
   ListingIdRoute: typeof ListingIdRoute
+  LandlordIndexRoute: typeof LandlordIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -324,13 +326,6 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/landlord': {
-      id: '/landlord'
-      path: '/landlord'
-      fullPath: '/landlord'
-      preLoaderRoute: typeof LandlordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -389,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/landlord/': {
+      id: '/landlord/'
+      path: '/landlord'
+      fullPath: '/landlord/'
+      preLoaderRoute: typeof LandlordIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listing/$id': {
       id: '/listing/$id'
       path: '/listing/$id'
@@ -398,34 +400,20 @@ declare module '@tanstack/react-router' {
     }
     '/landlord/new': {
       id: '/landlord/new'
-      path: '/new'
+      path: '/landlord/new'
       fullPath: '/landlord/new'
       preLoaderRoute: typeof LandlordNewRouteImport
-      parentRoute: typeof LandlordRoute
+      parentRoute: typeof rootRouteImport
     }
     '/landlord/$id': {
       id: '/landlord/$id'
-      path: '/$id'
+      path: '/landlord/$id'
       fullPath: '/landlord/$id'
       preLoaderRoute: typeof LandlordIdRouteImport
-      parentRoute: typeof LandlordRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface LandlordRouteChildren {
-  LandlordIdRoute: typeof LandlordIdRoute
-  LandlordNewRoute: typeof LandlordNewRoute
-}
-
-const LandlordRouteChildren: LandlordRouteChildren = {
-  LandlordIdRoute: LandlordIdRoute,
-  LandlordNewRoute: LandlordNewRoute,
-}
-
-const LandlordRouteWithChildren = LandlordRoute._addFileChildren(
-  LandlordRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -436,7 +424,6 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HelpRoute: HelpRoute,
-  LandlordRoute: LandlordRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
@@ -444,7 +431,10 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  LandlordIdRoute: LandlordIdRoute,
+  LandlordNewRoute: LandlordNewRoute,
   ListingIdRoute: ListingIdRoute,
+  LandlordIndexRoute: LandlordIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
