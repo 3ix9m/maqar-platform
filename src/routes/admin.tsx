@@ -14,7 +14,7 @@ import {
 } from "@/lib/api";
 import { statusTone, signStoragePaths, type ListingStatus } from "@/lib/listings";
 import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap, KeySquare } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { LocationPicker } from "@/components/LocationPicker";
@@ -322,20 +322,32 @@ function PropertiesTab() {
     onError: (e: any) => toast.error(e.message || "تعذّر تحديث الحالة"),
   });
 
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const openCreate = () => {
+    if (!landlords.length) {
+      toast.error("أضف مالكاً أولاً من تبويب «الملاك» قبل إضافة عقار");
+      return;
+    }
+    setEditId(null);
+    setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <button onClick={() => { setEditId(null); setShowForm(true); }} className="flex items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground">
+      <button type="button" onClick={openCreate} className="flex items-center justify-center gap-2 rounded-full bg-gold py-3 text-sm font-extrabold text-gold-foreground active:scale-[0.98] transition">
         <Plus size={16} /> إضافة عقار جديد
       </button>
 
       {showForm && (
-        <PropertyForm
-          landlords={landlords}
-          editId={editId}
-          existing={listings.find((l) => l.id === editId)}
-          onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); qc.invalidateQueries({ queryKey: ["listings"] }); }}
-        />
+        <div ref={formRef}>
+          <PropertyForm
+            landlords={landlords}
+            editId={editId}
+            existing={listings.find((l) => l.id === editId)}
+            onClose={() => setShowForm(false)}
+            onSaved={() => { setShowForm(false); qc.invalidateQueries({ queryKey: ["listings"] }); }}
+          />
+        </div>
       )}
 
       <div className="flex flex-col gap-2 rounded-2xl bg-card p-3 shadow-soft">
