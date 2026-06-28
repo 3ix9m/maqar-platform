@@ -221,12 +221,14 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
       .then(() => {
         if (cancelled || !mapEl.current) return;
         const g = window.google.maps;
+        // Default view: الكوامل — سوهاج
+        const AL_KAWAMEL = { lat: 26.6062, lng: 31.7461 };
         const center = points.length
           ? { lat: Number(points[0].latitude), lng: Number(points[0].longitude) }
-          : { lat: 30.0444, lng: 31.2357 };
+          : AL_KAWAMEL;
         mapRef.current ||= new g.Map(mapEl.current, {
           center,
-          zoom: 13,
+          zoom: points.length ? 13 : 14,
           disableDefaultUI: true,
           zoomControl: true,
           gestureHandling: "greedy",
