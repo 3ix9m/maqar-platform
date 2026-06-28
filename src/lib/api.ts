@@ -474,3 +474,29 @@ export async function reviewLandlordRequest(id: string, status: "approved" | "re
   if (error) throw error;
 }
 
+
+export async function promoteStudentToLandlord(userId: string, fullName: string, phone: string | null) {
+  // Insert pending request, then approve to trigger role grant + landlord profile creation
+  const { data: existing } = await (supabase as any)
+    .from("landlord_requests")
+    .select("id,status")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let reqId = existing?.id as string | undefined;
+  if (!reqId) {
+    const { data, error } = await (supabase as any)
+      .from("landlord_requests")
+      .insert({ user_id: userId, full_name: fullName, phone: phone ?? "" })
+      .select("id")
+      .single();
+    if (error) throw error;
+    reqId = data.id;
+  }
+  const { error: upErr } = await (supabase as any)
+    .from("landlord_requests")
+    .update({ status: "approved" })
+    .eq("id", reqId);
+  if (upErr) throw upErr;
+}

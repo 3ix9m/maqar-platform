@@ -10,9 +10,10 @@ import {
   listAllHousingRequests, updateHousingRequestStatus,
   listRentals, createRental, deleteRental, listStudents,
   listStudentsFull, setStudentVerified, bulkUpdatePropertyStatus, listRecentActivity,
+  promoteStudentToLandlord,
 } from "@/lib/api";
 import { statusTone, signStoragePaths, type ListingStatus } from "@/lib/listings";
-import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap } from "lucide-react";
+import { Users, Building2, Inbox, CheckCircle2, UserPlus, Plus, Edit3, Trash2, BarChart3, Star, Loader2, X, Upload, Search, HomeIcon, Phone, KeyRound, MapPin, ImageIcon, ShieldCheck, RefreshCw, Zap, Activity, GraduationCap, KeySquare } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
@@ -206,6 +207,15 @@ function UsersTab() {
     },
     onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
   });
+  const promoteMut = useMutation({
+    mutationFn: (u: any) => promoteStudentToLandlord(u.id, u.full_name ?? "مالك", u.phone ?? null),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["students-full"] });
+      qc.invalidateQueries({ queryKey: ["landlords"] });
+      toast.success("تم منح صلاحيات المالك");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر منح الصلاحيات"),
+  });
   const filtered = useMemo(() => {
     if (!q.trim()) return users;
     const s = q.toLowerCase();
@@ -259,6 +269,22 @@ function UsersTab() {
               >
                 {pending && <Loader2 size={11} className="animate-spin" />}
                 {u.verified_renter ? "إلغاء التوثيق" : "تفعيل التوثيق كمستأجر"}
+              </button>
+              <button
+                disabled={promoteMut.isPending && promoteMut.variables?.id === u.id}
+                onClick={() => {
+                  if (confirm("منح هذا الطالب صلاحيات المالك؟ سيتمكن من إنشاء وإدارة العقارات.")) {
+                    promoteMut.mutate(u);
+                  }
+                }}
+                className="mt-2 flex w-full items-center justify-center gap-1 rounded-full border border-accent/40 bg-accent/10 py-2 text-[11px] font-bold text-accent disabled:opacity-60"
+              >
+                {promoteMut.isPending && promoteMut.variables?.id === u.id ? (
+                  <Loader2 size={11} className="animate-spin" />
+                ) : (
+                  <KeySquare size={11} />
+                )}
+                منح صلاحيات المالك
               </button>
             </div>
           );
