@@ -283,16 +283,6 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
       </div>
     );
   }
-  if (points.length === 0) {
-    return (
-      <div className="grid h-64 w-full place-items-center rounded-2xl border border-dashed border-border bg-secondary/50 text-xs text-muted-foreground">
-        <span className="flex flex-col items-center gap-2">
-          <MapPin size={20} className="text-gold/60" />
-          لا توجد عقارات بإحداثيات على الخريطة
-        </span>
-      </div>
-    );
-  }
   return (
     <MapShell loading={loading} height="h-80">
       <div ref={mapEl} className="h-full w-full" />
