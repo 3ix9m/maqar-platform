@@ -8,7 +8,7 @@ import { statusTone } from "@/lib/listings";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/landlord")({
+export const Route = createFileRoute("/landlord/")({
   head: () => ({ meta: [{ title: "لوحة المالك | مَقَر" }] }),
   component: LandlordDashboard,
 });
