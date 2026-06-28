@@ -35,6 +35,13 @@ function Profile() {
   const { user, roles, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [reqOpen, setReqOpen] = useState(false);
+  const { data: myLandlordRequest } = useQuery({
+    queryKey: ["my-landlord-request", user?.id],
+    enabled: !!user && !roles.includes("landlord") && !isAdmin,
+    queryFn: () => getMyLandlordRequest(user!.id),
+  });
+
   const { data: profile } = useQuery({
     queryKey: ["student-profile", user?.id],
     enabled: !!user,
