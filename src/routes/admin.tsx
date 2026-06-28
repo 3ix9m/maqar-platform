@@ -207,6 +207,15 @@ function UsersTab() {
     },
     onError: (e: any) => toast.error(e.message || "تعذّر التحديث"),
   });
+  const promoteMut = useMutation({
+    mutationFn: (u: any) => promoteStudentToLandlord(u.id, u.full_name ?? "مالك", u.phone ?? null),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["students-full"] });
+      qc.invalidateQueries({ queryKey: ["landlords"] });
+      toast.success("تم منح صلاحيات المالك");
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر منح الصلاحيات"),
+  });
   const filtered = useMemo(() => {
     if (!q.trim()) return users;
     const s = q.toLowerCase();
