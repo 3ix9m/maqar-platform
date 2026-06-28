@@ -23,7 +23,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords";
+type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords" | "landlord_requests";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
