@@ -1,12 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2, UserCog, FileText, Lock } from "lucide-react";
+import { User, Heart, BookOpen, LogOut, ChevronLeft, ShieldCheck, Bell, Scale, Trash2, Building2, UserCog, FileText, Lock, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UniversityPicker } from "@/components/UniversityPicker";
-import { deletePriceAlert, listPriceAlerts } from "@/lib/api";
+import { deletePriceAlert, getMyLandlordRequest, listPriceAlerts } from "@/lib/api";
 import { toast } from "sonner";
+import { useState } from "react";
+import { LandlordRequestDialog } from "@/components/LandlordRequestDialog";
+
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -32,6 +35,13 @@ function Profile() {
   const { user, roles, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [reqOpen, setReqOpen] = useState(false);
+  const { data: myLandlordRequest } = useQuery({
+    queryKey: ["my-landlord-request", user?.id],
+    enabled: !!user && !roles.includes("landlord") && !isAdmin,
+    queryFn: () => getMyLandlordRequest(user!.id),
+  });
+
   const { data: profile } = useQuery({
     queryKey: ["student-profile", user?.id],
     enabled: !!user,
@@ -99,6 +109,34 @@ function Profile() {
           </li>
         ))}
       </ul>
+
+      {user && !roles.includes("landlord") && !isAdmin && (
+        <div className="mt-5 px-5">
+          <button
+            onClick={() => setReqOpen(true)}
+            className="flex w-full items-center justify-between rounded-2xl border border-gold/30 bg-gradient-to-l from-gold/10 to-transparent px-4 py-3.5 text-right shadow-soft transition hover:from-gold/15"
+          >
+            <span className="flex items-center gap-3">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
+                <KeyRound size={16} />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-primary">طلب صلاحيات مالك</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {myLandlordRequest?.status === "pending"
+                    ? "طلبك قيد المراجعة"
+                    : myLandlordRequest?.status === "rejected"
+                    ? "تم رفض الطلب السابق — يمكنك المحاولة مرة أخرى"
+                    : "أضف عقاراتك وأدرها بنفسك بعد الاعتماد"}
+                </span>
+              </span>
+            </span>
+            <ChevronLeft size={18} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
+
+
 
       {user && (
         <div className="mt-5 px-5">
@@ -181,6 +219,9 @@ function Profile() {
           </button>
         </div>
       )}
+
+      <LandlordRequestDialog open={reqOpen} onClose={() => { setReqOpen(false); qc.invalidateQueries({ queryKey: ["my-landlord-request", user?.id] }); }} />
     </AppShell>
+
   );
 }

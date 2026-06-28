@@ -424,3 +424,53 @@ export async function deletePriceAlert(id: string) {
 }
 
 
+// ───────────── Landlord Access Requests ─────────────
+export interface LandlordRequestRow {
+  id: string;
+  user_id: string;
+  full_name: string;
+  phone: string;
+  note: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export async function getMyLandlordRequest(userId: string): Promise<LandlordRequestRow | null> {
+  const { data, error } = await (supabase as any)
+    .from("landlord_requests")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as LandlordRequestRow | null;
+}
+
+export async function createLandlordRequest(input: {
+  user_id: string;
+  full_name: string;
+  phone: string;
+  note?: string;
+}) {
+  const { error } = await (supabase as any).from("landlord_requests").insert(input as any);
+  if (error) throw error;
+}
+
+export async function listLandlordRequests(status?: "pending" | "approved" | "rejected") {
+  let q = (supabase as any)
+    .from("landlord_requests")
+    .select("*, students(full_name, university)")
+    .order("created_at", { ascending: false });
+  if (status) q = q.eq("status", status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as (LandlordRequestRow & { students?: { full_name: string; university: string | null } | null })[];
+}
+
+export async function reviewLandlordRequest(id: string, status: "approved" | "rejected") {
+  const { error } = await (supabase as any).from("landlord_requests").update({ status }).eq("id", id);
+  if (error) throw error;
+}
+

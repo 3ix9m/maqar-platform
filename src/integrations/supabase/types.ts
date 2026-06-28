@@ -156,6 +156,45 @@ export type Database = {
           },
         ]
       }
+      landlord_requests: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          note: string | null
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["landlord_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          note?: string | null
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["landlord_request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          note?: string | null
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["landlord_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       landlords: {
         Row: {
           created_at: string
@@ -541,6 +580,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "student" | "landlord"
+      landlord_request_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -669,6 +709,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "student", "landlord"],
+      landlord_request_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

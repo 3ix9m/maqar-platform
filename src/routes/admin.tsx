@@ -23,7 +23,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
 });
 
-type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords";
+type Tab = "overview" | "properties" | "users" | "requests" | "housing" | "rentals" | "landlords" | "landlord_requests";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -46,6 +46,7 @@ function AdminDashboard() {
             { id: "overview", label: "نظرة عامة" },
             { id: "properties", label: "العقارات" },
             { id: "users", label: "المستخدمون" },
+            { id: "landlord_requests", label: "طلبات الملاك" },
             { id: "housing", label: "طلبات السكن" },
             { id: "landlords", label: "الملاك" },
           ].map((t) => (
@@ -64,6 +65,7 @@ function AdminDashboard() {
         {tab === "overview" && <Overview />}
         {tab === "properties" && <PropertiesTab />}
         {tab === "users" && <UsersTab />}
+        {tab === "landlord_requests" && <LandlordRequestsTab />}
         {tab === "housing" && <HousingTab />}
         {tab === "landlords" && <LandlordsTab />}
       </div>
@@ -864,6 +866,89 @@ function RentalsTab() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function LandlordRequestsTab() {
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending");
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["admin-landlord-requests", filter],
+    queryFn: async () => {
+      const { listLandlordRequests } = await import("@/lib/api");
+      return listLandlordRequests(filter);
+    },
+  });
+  const mut = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
+      const { reviewLandlordRequest } = await import("@/lib/api");
+      return reviewLandlordRequest(id, status);
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.status === "approved" ? "تم اعتماد الطلب ومنح صلاحية مالك" : "تم رفض الطلب");
+      qc.invalidateQueries({ queryKey: ["admin-landlord-requests"] });
+    },
+    onError: (e: any) => toast.error(e.message || "تعذّر تنفيذ الإجراء"),
+  });
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="flex gap-2">
+        {(["pending", "approved", "rejected"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition ${
+              filter === s ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+            }`}
+          >
+            {s === "pending" ? "قيد المراجعة" : s === "approved" ? "معتمدة" : "مرفوضة"}
+          </button>
+        ))}
+      </div>
+      {isLoading ? (
+        <p className="py-8 text-center text-xs text-muted-foreground">جارٍ التحميل...</p>
+      ) : data.length === 0 ? (
+        <p className="py-8 text-center text-xs text-muted-foreground">لا توجد طلبات.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {data.map((r: any) => (
+            <li key={r.id} className="rounded-2xl bg-card p-4 shadow-soft">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary">{r.full_name}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {r.phone}{r.students?.university ? ` · ${r.students.university}` : ""}
+                  </p>
+                  {r.note && <p className="mt-2 text-[12px] text-foreground/80">{r.note}</p>}
+                  <p className="mt-2 text-[10px] text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString("ar-EG")}
+                  </p>
+                </div>
+                {filter === "pending" && (
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <button
+                      disabled={mut.isPending}
+                      onClick={() => mut.mutate({ id: r.id, status: "approved" })}
+                      className="rounded-full bg-primary px-4 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                    >
+                      اعتماد
+                    </button>
+                    <button
+                      disabled={mut.isPending}
+                      onClick={() => mut.mutate({ id: r.id, status: "rejected" })}
+                      className="rounded-full border border-destructive/30 px-4 py-1.5 text-[11px] font-bold text-destructive disabled:opacity-50"
+                    >
+                      رفض
+                    </button>
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
