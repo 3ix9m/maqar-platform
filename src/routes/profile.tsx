@@ -110,6 +110,34 @@ function Profile() {
         ))}
       </ul>
 
+      {user && !roles.includes("landlord") && !isAdmin && (
+        <div className="mt-5 px-5">
+          <button
+            onClick={() => setReqOpen(true)}
+            className="flex w-full items-center justify-between rounded-2xl border border-gold/30 bg-gradient-to-l from-gold/10 to-transparent px-4 py-3.5 text-right shadow-soft transition hover:from-gold/15"
+          >
+            <span className="flex items-center gap-3">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
+                <KeyRound size={16} />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-primary">طلب صلاحيات مالك</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {myLandlordRequest?.status === "pending"
+                    ? "طلبك قيد المراجعة"
+                    : myLandlordRequest?.status === "rejected"
+                    ? "تم رفض الطلب السابق — يمكنك المحاولة مرة أخرى"
+                    : "أضف عقاراتك وأدرها بنفسك بعد الاعتماد"}
+                </span>
+              </span>
+            </span>
+            <ChevronLeft size={18} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
+
+
+
       {user && (
         <div className="mt-5 px-5">
           <div className="mb-2 flex items-center gap-2">
