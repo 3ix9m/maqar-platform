@@ -219,6 +219,9 @@ function Profile() {
           </button>
         </div>
       )}
+
+      <LandlordRequestDialog open={reqOpen} onClose={() => { setReqOpen(false); qc.invalidateQueries({ queryKey: ["my-landlord-request", user?.id] }); }} />
     </AppShell>
+
   );
 }
