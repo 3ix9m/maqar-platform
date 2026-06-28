@@ -221,12 +221,14 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
       .then(() => {
         if (cancelled || !mapEl.current) return;
         const g = window.google.maps;
+        // Default view: الكوامل — سوهاج
+        const AL_KAWAMEL = { lat: 26.6062, lng: 31.7461 };
         const center = points.length
           ? { lat: Number(points[0].latitude), lng: Number(points[0].longitude) }
-          : { lat: 30.0444, lng: 31.2357 };
+          : AL_KAWAMEL;
         mapRef.current ||= new g.Map(mapEl.current, {
           center,
-          zoom: 13,
+          zoom: points.length ? 13 : 14,
           disableDefaultUI: true,
           zoomControl: true,
           gestureHandling: "greedy",
@@ -278,16 +280,6 @@ export function PropertyMap({ listings }: { listings: Listing[] }) {
     return (
       <div className="grid h-64 w-full place-items-center rounded-2xl bg-secondary text-xs text-muted-foreground">
         الخريطة غير متاحة حالياً
-      </div>
-    );
-  }
-  if (points.length === 0) {
-    return (
-      <div className="grid h-64 w-full place-items-center rounded-2xl border border-dashed border-border bg-secondary/50 text-xs text-muted-foreground">
-        <span className="flex flex-col items-center gap-2">
-          <MapPin size={20} className="text-gold/60" />
-          لا توجد عقارات بإحداثيات على الخريطة
-        </span>
       </div>
     );
   }
