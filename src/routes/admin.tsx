@@ -272,11 +272,7 @@ function UsersTab() {
               </button>
               <button
                 disabled={promoteMut.isPending && promoteMut.variables?.id === u.id}
-                onClick={() => {
-                  if (confirm("منح هذا الطالب صلاحيات المالك؟ سيتمكن من إنشاء وإدارة العقارات.")) {
-                    promoteMut.mutate(u);
-                  }
-                }}
+                onClick={() => promoteMut.mutate(u)}
                 className="mt-2 flex w-full items-center justify-center gap-1 rounded-full border border-accent/40 bg-accent/10 py-2 text-[11px] font-bold text-accent disabled:opacity-60"
               >
                 {promoteMut.isPending && promoteMut.variables?.id === u.id ? (
